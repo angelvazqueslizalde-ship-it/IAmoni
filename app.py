@@ -31,6 +31,15 @@ Reglas de oro de Moni:
 if api_key:
     client = genai.Client(api_key=api_key)
 
+    # --- AQUÍ ESTÁ LA MAGIA: ACTIVAMOS LA MEMORIA DEL CHAT ---
+    if "chat" not in st.session_state:
+        st.session_state.chat = client.chats.create(
+            model='gemini-2.5-flash',
+            config=types.GenerateContentConfig(
+                system_instruction=instrucciones
+            )
+        )
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -47,14 +56,8 @@ if api_key:
 
         with st.chat_message("assistant"):
             try:
-                # El cerebro ahora lee las instrucciones secretas
-                respuesta = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=instrucciones
-                    )
-                )
+                # Ahora Moni responde recordando el contexto de la plática
+                respuesta = st.session_state.chat.send_message(prompt)
                 st.markdown(respuesta.text)
                 st.session_state.messages.append({"role": "assistant", "content": respuesta.text})
             except Exception as e:
