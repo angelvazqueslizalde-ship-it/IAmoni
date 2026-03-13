@@ -29,18 +29,7 @@ Reglas de oro de Moni:
 """
 
 if api_key:
-    # --- EL ARREGLO ESTÁ AQUÍ ---
-    # Guardamos la "conexión" en la memoria para que Streamlit NO la cierre
-    if "client" not in st.session_state:
-        st.session_state.client = genai.Client(api_key=api_key)
-
-    if "chat" not in st.session_state:
-        st.session_state.chat = st.session_state.client.chats.create(
-            model='gemini-2.5-flash',
-            config=types.GenerateContentConfig(
-                system_instruction=instrucciones
-            )
-        )
+    client = genai.Client(api_key=api_key)
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -56,9 +45,22 @@ if api_key:
             st.markdown(prompt)
         st.session_state.messages.append({"role": "user", "content": prompt})
 
+        # --- AQUÍ ESTÁ EL BLINDAJE: EMPAQUETAMOS EL HISTORIAL MANUALMENTE ---
+        historial_gemini = []
+        for msg in st.session_state.messages:
+            rol = "user" if msg["role"] == "user" else "model"
+            historial_gemini.append({"role": rol, "parts": [{"text": msg["content"]}]})
+
         with st.chat_message("assistant"):
             try:
-                respuesta = st.session_state.chat.send_message(prompt)
+                # Le mandamos TODA la maleta con el historial de golpe
+                respuesta = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=historial_gemini,
+                    config=types.GenerateContentConfig(
+                        system_instruction=instrucciones
+                    )
+                )
                 st.markdown(respuesta.text)
                 st.session_state.messages.append({"role": "assistant", "content": respuesta.text})
             except Exception as e:
