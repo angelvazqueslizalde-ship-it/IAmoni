@@ -29,11 +29,13 @@ Reglas de oro de Moni:
 """
 
 if api_key:
-    client = genai.Client(api_key=api_key)
+    # --- EL ARREGLO ESTÁ AQUÍ ---
+    # Guardamos la "conexión" en la memoria para que Streamlit NO la cierre
+    if "client" not in st.session_state:
+        st.session_state.client = genai.Client(api_key=api_key)
 
-    # --- AQUÍ ESTÁ LA MAGIA: ACTIVAMOS LA MEMORIA DEL CHAT ---
     if "chat" not in st.session_state:
-        st.session_state.chat = client.chats.create(
+        st.session_state.chat = st.session_state.client.chats.create(
             model='gemini-2.5-flash',
             config=types.GenerateContentConfig(
                 system_instruction=instrucciones
@@ -56,7 +58,6 @@ if api_key:
 
         with st.chat_message("assistant"):
             try:
-                # Ahora Moni responde recordando el contexto de la plática
                 respuesta = st.session_state.chat.send_message(prompt)
                 st.markdown(respuesta.text)
                 st.session_state.messages.append({"role": "assistant", "content": respuesta.text})
