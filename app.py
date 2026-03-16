@@ -144,34 +144,42 @@ button[kind="secondary"]:hover {
     border-color: #dc2626 !important;
 }
 
-/* ── FIX: BOTÓN PARA REABRIR EL SIDEBAR SÚPER VISIBLE ── */
+/* ── FIX UNIVERSAL: BOTÓN DE SIDEBAR (MÓVIL, TABLET Y PC) ── */
 [data-testid="collapsedControl"] {
     display: flex !important;
-    background: #0ea5e9 !important; /* Azul llamativo */
-    border-radius: 50% !important; /* Botón circular */
-    width: 45px !important;
-    height: 45px !important;
-    position: fixed !important;
-    top: 15px !important;
-    left: 15px !important;
-    z-index: 999999 !important;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4) !important;
-    justify-content: center !important;
     align-items: center !important;
+    justify-content: center !important;
+    background-color: #f0f9ff !important;
+    border: 2px solid #0ea5e9 !important;
+    border-radius: 10px !important;
+    z-index: 999999 !important;
+    width: 45px !important;  
+    height: 45px !important; 
+    margin: 10px !important; 
     transition: all 0.2s ease !important;
+    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2) !important;
 }
 [data-testid="collapsedControl"] svg {
+    fill: #0ea5e9 !important;
+    color: #0ea5e9 !important;
+    width: 26px !important;
+    height: 26px !important;
+}
+[data-testid="collapsedControl"]:hover,
+[data-testid="collapsedControl"]:active {
+    background-color: #0ea5e9 !important;
+    transform: scale(1.05) !important;
+}
+[data-testid="collapsedControl"]:hover svg,
+[data-testid="collapsedControl"]:active svg {
     fill: white !important;
     color: white !important;
-    width: 24px !important;
-    height: 24px !important;
 }
-[data-testid="collapsedControl"]:hover {
-    background: #0284c7 !important;
-    transform: scale(1.1) !important;
-}
-button[kind="header"] {
-    color: white !important;
+
+/* Evitar que la cabecera invisible tape el botón */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    z-index: 99998 !important;
 }
 
 /* ── FIX CRÍTICO: texto visible en el chat ── */
