@@ -142,6 +142,21 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 /* Ocultar elementos de Streamlit */
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
 
+/* Botón de colapsar/abrir sidebar MÁS VISIBLE */
+[data-testid="collapsedControl"] {
+    background: #667eea !important;
+    border-radius: 0 12px 12px 0 !important;
+    width: 28px !important;
+    color: white !important;
+    box-shadow: 3px 0 12px rgba(102,126,234,0.4) !important;
+}
+[data-testid="collapsedControl"]:hover {
+    background: #764ba2 !important;
+}
+button[kind="header"] {
+    color: white !important;
+}
+
 /* ── FIX CRÍTICO: texto visible en el chat ── */
 [data-testid="stChatMessage"] p,
 [data-testid="stChatMessage"] li,
@@ -404,7 +419,8 @@ elif st.session_state.vista == "alumno_login":
             nombre = st.text_input("Tu nombre", placeholder="Ej: Valeria López")
             grado = st.selectbox("Tu grado actual", [
                 "1° Secundaria", "2° Secundaria", "3° Secundaria",
-                "1° Preparatoria", "2° Preparatoria", "3° Preparatoria"
+                "1° Semestre Prepa", "2° Semestre Prepa", "3° Semestre Prepa",
+                "4° Semestre Prepa", "5° Semestre Prepa", "6° Semestre Prepa"
             ])
             submitted = st.form_submit_button("¡Entrar con Moni! 🚀", use_container_width=True)
 
@@ -537,6 +553,33 @@ elif st.session_state.vista == "chat":
             """, unsafe_allow_html=True)
 
     st.markdown("---")
+
+    # ── BARRA DE MODO (siempre visible aunque el sidebar esté cerrado) ──
+    modo_actual = detectar_modo(st.session_state.messages)
+    modos_info = {
+        "nivelacion":     ("📚", "Modo Nivelación", "#fef2f2", "#ef4444"),
+        "profundizacion": ("🚀", "Modo Profundización", "#f0fdf4", "#22c55e"),
+        "vocacional":     ("🌟", "Orientación Vocacional", "#faf5ff", "#a855f7"),
+        "general":        ("💬", "Conversación General", "#f0f9ff", "#0ea5e9"),
+    }
+    icono_m, label_m, bg_m, color_m = modos_info.get(modo_actual, modos_info["general"])
+    modos_d = perfil.get("modos", {})
+    st.markdown(f"""
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                background:{bg_m}; border:1.5px solid {color_m}33;
+                border-radius:12px; padding:10px 18px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.2rem;">{icono_m}</span>
+            <span style="font-weight:800; color:{color_m}; font-size:0.9rem;">{label_m}</span>
+        </div>
+        <div style="display:flex; gap:12px; font-size:0.78rem; color:#64748b;">
+            <span>📚 <b>{modos_d.get('nivelacion',0)}</b></span>
+            <span>🚀 <b>{modos_d.get('profundizacion',0)}</b></span>
+            <span>🌟 <b>{modos_d.get('vocacional',0)}</b></span>
+            <span style="color:#94a3b8;">Sesión #{perfil.get('total_sesiones',1)}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Mostrar historial
     for message in st.session_state.messages:
