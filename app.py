@@ -118,15 +118,14 @@ button[kind="secondary"]:hover {
     border-color: #dc2626 !important;
 }
 
-/* ── FIX ABSOLUTO: CLAVAR EL BOTÓN EN LA PANTALLA ── */
 [data-testid="collapsedControl"] {
     position: fixed !important;
     top: 15px !important;
     left: 15px !important;
-    background-color: #0ea5e9 !important; /* Fondo azul */
+    background-color: #0ea5e9 !important;
     border-radius: 8px !important;
     padding: 6px !important;
-    z-index: 999999 !important; /* Siempre al frente */
+    z-index: 999999 !important;
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -213,8 +212,11 @@ class ManejadorPerfiles:
         self.max_historial = 50
 
     def id_alumno(self, nombre, grado):
-        nombre_limpio = re.sub(r'[^a-zA-Z0-9]', '', nombre.lower().replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u').replace('ñ','n'))[:20]
-        grado_limpio  = re.sub(r'[^a-zA-Z0-9]', '', grado.lower())[:10]
+        nombre_limpio = re.sub(r'[^a-zA-Z0-9]', '',
+            nombre.lower()
+            .replace('á','a').replace('é','e').replace('í','i')
+            .replace('ó','o').replace('ú','u').replace('ñ','n'))[:20]
+        grado_limpio = re.sub(r'[^a-zA-Z0-9]', '', grado.lower())[:10]
         return f"{nombre_limpio}_{grado_limpio}"
 
     def ruta_perfil(self, alumno_id):
@@ -256,13 +258,11 @@ class ManejadorPerfiles:
     def guardar_perfil(self, alumno_id, perfil, messages=None):
         if messages is not None:
             perfil["ultima_sesion"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-
             ultimo_idx = perfil.get("ultimo_indice_contado", 0)
             mensajes_nuevos_usuario = [
                 m for m in messages[ultimo_idx:] if m["role"] == "user"
             ]
             perfil["mensajes_totales"] = perfil.get("mensajes_totales", 0) + len(mensajes_nuevos_usuario)
-
             for msg in messages[ultimo_idx:]:
                 if msg["role"] == "assistant":
                     contenido = msg["content"].lower()
@@ -272,13 +272,11 @@ class ManejadorPerfiles:
                         perfil["modos"]["profundizacion"] += 1
                     elif "orientación vocacional" in contenido or "orientacion vocacional" in contenido:
                         perfil["modos"]["vocacional"] += 1
-
             perfil["ultimo_indice_contado"] = len(messages)
             perfil["historial"] = (
                 messages[-self.max_historial:]
                 if len(messages) > self.max_historial else messages
             )
-
         ruta = self.ruta_perfil(alumno_id)
         try:
             with open(ruta, "w", encoding="utf-8") as f:
@@ -357,52 +355,148 @@ def detectar_modo(messages):
 
 
 # ═══════════════════════════════════════════════
-#  LLAMAR A GEMINI (Con soporte de imágenes)
+#  API KEY CON ROTACIÓN AUTOMÁTICA
 # ═══════════════════════════════════════════════
-def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.environ.get("GEMINI_API_KEY", "")
+def get_api_keys():
+    """Devuelve lista de todas las keys disponibles."""
+    keys = []
+    for i in range(1, 6):
+        nombre = "GEMINI_API_KEY" if i == 1 else f"GEMINI_API_KEY_{i}"
+        try:
+            key = st.secrets[nombre]
+            if key:
+                keys.append(key)
+        except:
+            key = os.environ.get(nombre, "")
+            if key:
+                keys.append(key)
+    return keys
 
+
+# ═══════════════════════════════════════════════
+#  LLAMAR A GEMINI (con rotación automática)
+# ═══════════════════════════════════════════════
 def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
-    try:
-        client = genai.Client(api_key=get_api_key())
+    keys = get_api_keys()
 
-        historial_gemini = []
-        for i, msg in enumerate(messages):
-            rol = "user" if msg["role"] == "user" else "model"
-            
-            # Si es el último mensaje y hay imagen, se la pasamos a Gemini
-            if i == len(messages) - 1 and imagen_adjunta and rol == "user":
-                img = Image.open(imagen_adjunta)
-                historial_gemini.append({
-                    "role": rol,
-                    "parts": [{"text": msg["content"]}, img]
-                })
-            else:
-                historial_gemini.append({
-                    "role": rol,
-                    "parts": [{"text": msg["content"]}]
-                })
+    if not keys:
+        return None, "❌ No hay API keys configuradas en Secrets."
 
-        respuesta = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=historial_gemini,
-            config=types.GenerateContentConfig(
-                system_instruction=instrucciones
+    for key in keys:
+        try:
+            client = genai.Client(api_key=key)
+
+            historial_gemini = []
+            for i, msg in enumerate(messages):
+                rol = "user" if msg["role"] == "user" else "model"
+                if i == len(messages) - 1 and imagen_adjunta and rol == "user":
+                    img = Image.open(imagen_adjunta)
+                    historial_gemini.append({
+                        "role": rol,
+                        "parts": [{"text": msg["content"]}, img]
+                    })
+                else:
+                    historial_gemini.append({
+                        "role": rol,
+                        "parts": [{"text": msg["content"]}]
+                    })
+
+            respuesta = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=historial_gemini,
+                config=types.GenerateContentConfig(
+                    system_instruction=instrucciones
+                )
             )
-        )
-        return respuesta.text, None
+            return respuesta.text, None
 
-    except Exception as e:
-        error = str(e)
-        if "api key" in error.lower():
-            return None, "❌ API key inválida. Revisa la configuración en Streamlit Secrets."
-        elif "quota" in error.lower():
-            return None, "⏳ Límite de uso alcanzado. Intenta en unos minutos."
-        else:
-            return None, f"❌ Error inesperado: {error}"
+        except Exception as e:
+            error = str(e).lower()
+            if "quota" in error or "rate" in error or "429" in error:
+                continue  # Intenta con la siguiente key
+            elif "api key" in error:
+                return None, "❌ API key inválida."
+            else:
+                return None, f"❌ Error inesperado: {str(e)}"
+
+    return None, "⏳ Todas las keys alcanzaron su límite. Intenta más tarde."
+
+
+# ═══════════════════════════════════════════════
+#  GENERAR REPORTE VOCACIONAL
+# ═══════════════════════════════════════════════
+def generar_reporte_vocacional(perfil, messages):
+    """Genera un reporte vocacional personalizado basado en el perfil del alumno."""
+    keys = get_api_keys()
+    if not keys:
+        return None, "❌ No hay API keys configuradas."
+
+    resumen_conversaciones = ""
+    for msg in messages:
+        if msg["role"] == "user":
+            resumen_conversaciones += f"- Alumno: {msg['content'][:150]}\n"
+
+    modos = perfil.get("modos", {})
+
+    prompt_reporte = f"""
+Eres un orientador vocacional experto. Analiza el siguiente perfil de un estudiante 
+mexicano y genera un reporte vocacional personalizado, cálido y motivador.
+
+DATOS DEL ALUMNO:
+- Nombre: {perfil.get('nombre')}
+- Grado actual: {perfil.get('grado')}
+- Primera sesión con Moni: {perfil.get('primera_sesion')}
+- Total de sesiones: {perfil.get('total_sesiones')}
+- Mensajes enviados: {perfil.get('mensajes_totales')}
+- Veces en modo nivelación (áreas de crecimiento): {modos.get('nivelacion', 0)}
+- Veces en modo profundización (áreas de pasión): {modos.get('profundizacion', 0)}
+- Veces en orientación vocacional (interés en su futuro): {modos.get('vocacional', 0)}
+
+MUESTRA DE SUS CONVERSACIONES CON MONI:
+{resumen_conversaciones[:2000]}
+
+Genera un reporte con EXACTAMENTE estas secciones:
+
+🌟 REPORTE VOCACIONAL DE {perfil.get('nombre', '').upper()}
+{'='*40}
+
+📚 TU PERFIL COMO APRENDIZ
+[2-3 oraciones describiendo cómo aprende este alumno]
+
+💪 TUS FORTALEZAS DETECTADAS
+[Lista de 3-4 fortalezas específicas]
+
+🌱 TUS ÁREAS DE CRECIMIENTO
+[Lista de 2-3 áreas donde ha mostrado esfuerzo]
+
+🎯 CARRERAS QUE VAN CONTIGO
+[3 carreras recomendadas con justificación y materias clave]
+
+✨ MENSAJE PARA TU FUTURO
+[Párrafo motivacional personalizado de 3-4 oraciones]
+
+Habla directamente al alumno de tú. Tono cálido, motivador y honesto.
+"""
+
+    for key in keys:
+        try:
+            client = genai.Client(api_key=key)
+            respuesta = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[{"role": "user", "parts": [{"text": prompt_reporte}]}],
+                config=types.GenerateContentConfig(
+                    system_instruction="Eres un orientador vocacional experto para estudiantes mexicanos de 12 a 18 años."
+                )
+            )
+            return respuesta.text, None
+        except Exception as e:
+            error = str(e).lower()
+            if "quota" in error or "rate" in error or "429" in error:
+                continue
+            else:
+                return None, f"❌ Error: {str(e)}"
+
+    return None, "⏳ Todas las keys alcanzaron su límite."
 
 
 # ═══════════════════════════════════════════════
@@ -414,6 +508,7 @@ for key, default in {
     "messages": [],
     "es_primera_vez": False,
     "alumno_detalle": None,
+    "reporte_generado": None,
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
@@ -474,7 +569,7 @@ if st.session_state.vista == "inicio":
 
 
 # ════════════════════════════════════════════════════════════
-#  VISTA 2: LOGIN DEL ALUMNO (con PIN)
+#  VISTA 2: LOGIN DEL ALUMNO
 # ════════════════════════════════════════════════════════════
 elif st.session_state.vista == "alumno_login":
 
@@ -520,8 +615,8 @@ elif st.session_state.vista == "alumno_login":
                     if manejador.verificar_pin(perfil_exist, pin.strip()):
                         perfil_exist["ultima_sesion"]  = datetime.now().strftime("%Y-%m-%d %H:%M")
                         perfil_exist["total_sesiones"] = perfil_exist.get("total_sesiones", 1) + 1
-                        st.session_state.perfil_activo = perfil_exist
-                        st.session_state.messages      = perfil_exist.get("historial", [])
+                        st.session_state.perfil_activo  = perfil_exist
+                        st.session_state.messages       = perfil_exist.get("historial", [])
                         st.session_state.es_primera_vez = False
                         manejador.guardar_perfil(alumno_id, perfil_exist)
                         st.session_state.vista = "chat"
@@ -599,6 +694,7 @@ elif st.session_state.vista == "chat":
         st.markdown(badges_map.get(modo, ""), unsafe_allow_html=True)
         st.markdown("---")
 
+        # ── EXPORTAR PERFIL ──
         perfil_export = json.dumps(
             {k: v for k, v in perfil.items() if k != "pin_hash"},
             ensure_ascii=False, indent=2
@@ -611,28 +707,56 @@ elif st.session_state.vista == "chat":
             use_container_width=True
         )
 
-        # ── NUEVO: DESCARGAR APUNTES PARA LEER OFFLINE ──
+        # ── APUNTES OFFLINE ──
         st.markdown("---")
         st.markdown("**📶 ¿Sin internet en casa?**")
-        
         texto_offline = f"📚 Apuntes de Moni para {nombre}\n"
         texto_offline += f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
         texto_offline += "="*40 + "\n\n"
-        
         for msg in st.session_state.messages:
             rol_txt = "Tú" if msg["role"] == "user" else "🤖 Moni"
-            # Limpiamos notas internas como la de la imagen
             contenido_limpio = msg["content"].replace("\n\n*[El alumno adjuntó una imagen de su tarea]*", " [Imagen enviada]")
             texto_offline += f"{rol_txt}:\n{contenido_limpio}\n\n"
             texto_offline += "-"*40 + "\n\n"
-            
         st.download_button(
-            "💾 Descargar clase para leer offline",
+            "💾 Descargar clase offline",
             data=texto_offline,
             file_name=f"Apuntes_Moni_{nombre.replace(' ', '_')}.txt",
             mime="text/plain",
             use_container_width=True
         )
+
+        # ── REPORTE VOCACIONAL ──
+        st.markdown("---")
+        st.markdown("**🎓 Reporte vocacional**")
+        sesiones_actuales = perfil.get("total_sesiones", 1)
+        if sesiones_actuales < 3:
+            st.markdown(f"""
+            <div style="background:#fef9ef; border:1px solid #f59e0b; border-radius:10px;
+                        padding:10px; font-size:0.78rem; color:#92400e;">
+                💡 Completa al menos 3 sesiones para generar tu reporte.
+                Llevas <b>{sesiones_actuales}</b> sesión(es).
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            if st.button("📋 Generar mi reporte", key="btn_reporte", use_container_width=True):
+                with st.spinner("Analizando tu perfil... 🔍"):
+                    reporte, error_r = generar_reporte_vocacional(
+                        perfil, st.session_state.messages
+                    )
+                    if error_r:
+                        st.error(error_r)
+                    else:
+                        st.session_state.reporte_generado = reporte
+
+            if st.session_state.get("reporte_generado"):
+                st.download_button(
+                    "⬇️ Descargar mi reporte",
+                    data=st.session_state.reporte_generado,
+                    file_name=f"Reporte_Vocacional_{nombre.replace(' ','_')}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
 
         st.markdown("---")
         if st.button("🚪 Cerrar sesión", key="logout_sidebar", use_container_width=True):
@@ -640,6 +764,7 @@ elif st.session_state.vista == "chat":
             st.session_state.vista = "inicio"
             st.session_state.perfil_activo = None
             st.session_state.messages = []
+            st.session_state.reporte_generado = None
             st.rerun()
 
     # ── HEADER PRINCIPAL ──
@@ -654,11 +779,12 @@ elif st.session_state.vista == "chat":
             st.session_state.vista = "inicio"
             st.session_state.perfil_activo = None
             st.session_state.messages = []
+            st.session_state.reporte_generado = None
             st.rerun()
 
     st.markdown("---")
 
-    # ── BARRA DE MODO SIEMPRE VISIBLE ──
+    # ── BARRA DE MODO ──
     modo_actual = detectar_modo(st.session_state.messages)
     modos_info  = {
         "nivelacion":     ("📚", "Modo Nivelación",        "#fef2f2", "#ef4444"),
@@ -685,15 +811,28 @@ elif st.session_state.vista == "chat":
     </div>
     """, unsafe_allow_html=True)
 
+    # ── MOSTRAR REPORTE SI FUE GENERADO ──
+    if st.session_state.get("reporte_generado"):
+        st.markdown("""
+        <div style="background:linear-gradient(135deg,#faf5ff,#f0f9ff);
+                    border:2px solid #a855f7; border-radius:16px;
+                    padding:20px; margin-bottom:16px;">
+        """, unsafe_allow_html=True)
+        st.markdown(st.session_state.reporte_generado)
+        st.markdown("</div>", unsafe_allow_html=True)
+        if st.button("✖️ Cerrar reporte", key="cerrar_reporte"):
+            st.session_state.reporte_generado = None
+            st.rerun()
+
     # ── HISTORIAL ──
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     # ── BIENVENIDA AUTOMÁTICA ──
-    api_key = get_api_key()
+    keys_disponibles = get_api_keys()
 
-    if not st.session_state.messages and api_key:
+    if not st.session_state.messages and keys_disponibles:
         if st.session_state.es_primera_vez:
             bienvenida = f"""¡Hola, **{nombre}**! 🎉✨ Soy **Moni**, tu mentora inteligente.
 
@@ -716,28 +855,25 @@ Esta es tu sesión **#{sesion_num}** conmigo. Recuerdo todo lo que hemos trabaja
         st.session_state.perfil_activo = perfil
         st.rerun()
 
-    # ── INPUT (CON SUBIDA DE IMAGEN) ──
-    if api_key:
-        # Agregamos el expander para subir foto de tarea
+    # ── INPUT CON IMAGEN ──
+    if keys_disponibles:
         with st.expander("📷 ¿Tienes una foto de tu tarea? Súbela aquí"):
             foto_tarea = st.file_uploader("Sube una imagen (JPG o PNG)", type=["jpg", "jpeg", "png"])
             if foto_tarea:
-                st.success("✅ ¡Imagen lista! Ahora escríbele a Moni qué necesitas ayuda con esta foto.")
+                st.success("✅ ¡Imagen lista! Ahora escríbele a Moni qué necesitas.")
 
         prompt = st.chat_input(f"Escríbele a Moni, {nombre}... 💬")
 
         if prompt:
             with st.chat_message("user"):
                 st.markdown(prompt)
-                # Si subió una foto, la mostramos pequeñita en el chat
                 if foto_tarea:
                     st.image(foto_tarea, width=200)
 
-            # Guardamos el texto en el historial local (evitamos guardar la imagen en el JSON)
             texto_historial = prompt
             if foto_tarea:
                 texto_historial += "\n\n*[El alumno adjuntó una imagen de su tarea]*"
-                
+
             st.session_state.messages.append({"role": "user", "content": texto_historial})
 
             contexto_perfil = f"""
@@ -754,8 +890,8 @@ INFORMACION DEL ALUMNO:
             instrucciones_completas = INSTRUCCIONES_MONI + "\n\n" + contexto_perfil
 
             with st.chat_message("assistant"):
-                mensaje_spinner = "Moni está viendo tu imagen y pensando... 🤔" if foto_tarea else "Moni está pensando... 🤔"
-                with st.spinner(mensaje_spinner):
+                spinner_msg = "Moni está viendo tu imagen... 🤔" if foto_tarea else "Moni está pensando... 🤔"
+                with st.spinner(spinner_msg):
                     texto, error = llamar_gemini(
                         st.session_state.messages,
                         instrucciones_completas,
@@ -851,7 +987,6 @@ elif st.session_state.vista == "dashboard":
             st.session_state.vista = "inicio"
             st.rerun()
 
-    # ── DASHBOARD PRINCIPAL ──
     st.markdown('<p class="titulo-moni">📊 Panel del Maestro</p>', unsafe_allow_html=True)
     st.markdown("*Seguimiento de aprendizaje por alumno*")
     st.markdown("---")
@@ -873,7 +1008,6 @@ elif st.session_state.vista == "dashboard":
         </div>
         """, unsafe_allow_html=True)
     else:
-        # ── MÉTRICAS GLOBALES ──
         total_alumnos  = len(perfiles)
         total_sesiones = sum(p.get("total_sesiones", 0) for p in perfiles)
         total_msgs     = sum(p.get("mensajes_totales", 0) for p in perfiles)
@@ -883,12 +1017,12 @@ elif st.session_state.vista == "dashboard":
 
         cols = st.columns(6)
         for col, num, label, color in [
-            (cols[0], total_alumnos,  "Alumnos",     "#0ea5e9"),
-            (cols[1], total_sesiones, "Sesiones",    "#8b5cf6"),
-            (cols[2], total_msgs,     "Mensajes",    "#f59e0b"),
-            (cols[3], total_niv,      "Nivelación",  "#ef4444"),
-            (cols[4], total_prof,     "Profund.",    "#22c55e"),
-            (cols[5], total_voc,      "Vocacional",  "#a855f7"),
+            (cols[0], total_alumnos,  "Alumnos",    "#0ea5e9"),
+            (cols[1], total_sesiones, "Sesiones",   "#8b5cf6"),
+            (cols[2], total_msgs,     "Mensajes",   "#f59e0b"),
+            (cols[3], total_niv,      "Nivelación", "#ef4444"),
+            (cols[4], total_prof,     "Profund.",   "#22c55e"),
+            (cols[5], total_voc,      "Vocacional", "#a855f7"),
         ]:
             with col:
                 st.markdown(f"""
@@ -900,19 +1034,17 @@ elif st.session_state.vista == "dashboard":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── GRÁFICA DE MODOS POR ALUMNO ──
         if len(perfiles) > 1:
             st.markdown("### 📈 Distribución de modos por alumno")
             df_modos = pd.DataFrame([{
-                "Alumno":          p.get("nombre", ""),
-                "Nivelación":      p.get("modos", {}).get("nivelacion", 0),
-                "Profundización":  p.get("modos", {}).get("profundizacion", 0),
-                "Vocacional":      p.get("modos", {}).get("vocacional", 0),
+                "Alumno":         p.get("nombre", ""),
+                "Nivelación":     p.get("modos", {}).get("nivelacion", 0),
+                "Profundización": p.get("modos", {}).get("profundizacion", 0),
+                "Vocacional":     p.get("modos", {}).get("vocacional", 0),
             } for p in perfiles])
             st.bar_chart(df_modos.set_index("Alumno"))
             st.markdown("---")
 
-        # ── LISTA + DETALLE ──
         col_lista, col_detalle = st.columns([1, 1.8])
 
         with col_lista:
