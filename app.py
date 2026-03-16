@@ -3,6 +3,7 @@ from google import genai
 from google.genai import types
 import json
 import os
+import re  # <-- IMPORTANTE: Añadido para limpiar textos (Regex)
 from datetime import datetime
 
 # ═══════════════════════════════════════════════
@@ -254,8 +255,10 @@ REGLAS DE ORO
 #  FUNCIONES DE PERFIL (MEMORIA)
 # ═══════════════════════════════════════════════
 def id_alumno(nombre, grado):
-    """Genera un ID único para el alumno."""
-    return f"{nombre.lower().replace(' ', '_')}_{grado.lower().replace(' ', '_')}"
+    """Genera un ID único y seguro para el alumno evitando Path Traversal."""
+    nombre_limpio = re.sub(r'[^a-zA-Z0-9]', '', nombre.lower())
+    grado_limpio = re.sub(r'[^a-zA-Z0-9]', '', grado.lower())
+    return f"{nombre_limpio}_{grado_limpio}"
 
 def ruta_perfil(alumno_id):
     return os.path.join(PERFILES_DIR, f"{alumno_id}.json")
@@ -294,11 +297,13 @@ def actualizar_perfil(perfil, messages):
 
     for msg in messages:
         if msg["role"] == "assistant":
-            if "Modo nivelación" in msg["content"]:
+            # Pasamos a minúsculas para que sea menos estricto
+            contenido = msg["content"].lower()
+            if "modo nivelación" in contenido or "modo nivelacion" in contenido:
                 perfil["modos"]["nivelacion"] += 1
-            elif "Modo profundización" in msg["content"]:
+            elif "modo profundización" in contenido or "modo profundizacion" in contenido:
                 perfil["modos"]["profundizacion"] += 1
-            elif "Orientación vocacional" in msg["content"]:
+            elif "orientación vocacional" in contenido or "orientacion vocacional" in contenido:
                 perfil["modos"]["vocacional"] += 1
 
     # Guardar resumen del historial (últimos 100 mensajes para no crecer infinito)
@@ -326,10 +331,14 @@ def listar_perfiles():
 def detectar_modo(messages):
     for msg in reversed(messages):
         if msg["role"] == "assistant":
-            txt = msg["content"]
-            if "Modo nivelación" in txt:     return "nivelacion"
-            if "Modo profundización" in txt:  return "profundizacion"
-            if "Orientación vocacional" in txt: return "vocacional"
+            # Todo en minúsculas para evitar errores si la IA no usa acentos
+            txt = msg["content"].lower()
+            if "modo nivelación" in txt or "modo nivelacion" in txt:
+                return "nivelacion"
+            if "modo profundización" in txt or "modo profundizacion" in txt:
+                return "profundizacion"
+            if "orientación vocacional" in txt or "orientacion vocacional" in txt:
+                return "vocacional"
     return "general"
 
 # ═══════════════════════════════════════════════
