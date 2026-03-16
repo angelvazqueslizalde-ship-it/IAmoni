@@ -3,7 +3,7 @@ from google import genai
 from google.genai import types
 import json
 import os
-import re  # <-- IMPORTANTE: Añadido para limpiar textos (Regex)
+import re
 from datetime import datetime
 
 # ═══════════════════════════════════════════════
@@ -128,18 +128,6 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 .metric-num  { font-size: 2rem; font-weight: 900; color: #0ea5e9; }
 .metric-label{ font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Alumno card en dashboard */
-.alumno-card {
-    background: white;
-    border-left: 4px solid #0ea5e9;
-    border-radius: 0 14px 14px 0;
-    padding: 14px 18px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-.alumno-nombre { font-size: 1rem; font-weight: 800; color: #1e293b; }
-.alumno-info   { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
-
 /* Ocultar elementos de Streamlit */
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
 
@@ -156,16 +144,31 @@ button[kind="secondary"]:hover {
     border-color: #dc2626 !important;
 }
 
-/* Botón de colapsar/abrir sidebar MÁS VISIBLE */
+/* ── FIX: BOTÓN PARA REABRIR EL SIDEBAR SÚPER VISIBLE ── */
 [data-testid="collapsedControl"] {
-    background: #667eea !important;
-    border-radius: 0 12px 12px 0 !important;
-    width: 28px !important;
+    display: flex !important;
+    background: #0ea5e9 !important; /* Azul llamativo */
+    border-radius: 50% !important; /* Botón circular */
+    width: 45px !important;
+    height: 45px !important;
+    position: fixed !important;
+    top: 15px !important;
+    left: 15px !important;
+    z-index: 999999 !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4) !important;
+    justify-content: center !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="collapsedControl"] svg {
+    fill: white !important;
     color: white !important;
-    box-shadow: 3px 0 12px rgba(102,126,234,0.4) !important;
+    width: 24px !important;
+    height: 24px !important;
 }
 [data-testid="collapsedControl"]:hover {
-    background: #764ba2 !important;
+    background: #0284c7 !important;
+    transform: scale(1.1) !important;
 }
 button[kind="header"] {
     color: white !important;
@@ -256,7 +259,8 @@ REGLAS DE ORO
 # ═══════════════════════════════════════════════
 def id_alumno(nombre, grado):
     """Genera un ID único y seguro para el alumno evitando Path Traversal."""
-    nombre_limpio = re.sub(r'[^a-zA-Z0-9]', '', nombre.lower())
+    # Quita acentos para el ID de archivo, asegurando compatibilidad
+    nombre_limpio = re.sub(r'[^a-zA-Z0-9]', '', nombre.lower().replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u').replace('ñ','n'))
     grado_limpio = re.sub(r'[^a-zA-Z0-9]', '', grado.lower())
     return f"{nombre_limpio}_{grado_limpio}"
 
@@ -297,7 +301,6 @@ def actualizar_perfil(perfil, messages):
 
     for msg in messages:
         if msg["role"] == "assistant":
-            # Pasamos a minúsculas para que sea menos estricto
             contenido = msg["content"].lower()
             if "modo nivelación" in contenido or "modo nivelacion" in contenido:
                 perfil["modos"]["nivelacion"] += 1
@@ -306,7 +309,7 @@ def actualizar_perfil(perfil, messages):
             elif "orientación vocacional" in contenido or "orientacion vocacional" in contenido:
                 perfil["modos"]["vocacional"] += 1
 
-    # Guardar resumen del historial (últimos 100 mensajes para no crecer infinito)
+    # Guardar resumen del historial (últimos 100 mensajes)
     perfil["historial"] = messages[-100:] if len(messages) > 100 else messages
     return perfil
 
@@ -331,7 +334,6 @@ def listar_perfiles():
 def detectar_modo(messages):
     for msg in reversed(messages):
         if msg["role"] == "assistant":
-            # Todo en minúsculas para evitar errores si la IA no usa acentos
             txt = msg["content"].lower()
             if "modo nivelación" in txt or "modo nivelacion" in txt:
                 return "nivelacion"
@@ -447,8 +449,11 @@ elif st.session_state.vista == "alumno_login":
             submitted = st.form_submit_button("¡Entrar con Moni! 🚀", use_container_width=True)
 
         if submitted:
+            # Validación estricta del nombre agregada aquí
             if not nombre.strip():
                 st.error("Por favor escribe tu nombre.")
+            elif not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre.strip()):
+                st.error("❌ El nombre solo puede contener letras y espacios, sin números ni símbolos.")
             else:
                 nombre = nombre.strip().title()
                 alumno_id = id_alumno(nombre, grado)
