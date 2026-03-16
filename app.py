@@ -141,6 +141,35 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 
 /* Ocultar elementos de Streamlit */
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
+
+/* ── FIX CRÍTICO: texto visible en el chat ── */
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] li,
+[data-testid="stChatMessage"] span,
+[data-testid="stChatMessage"] div,
+[data-testid="stChatMessage"] strong,
+[data-testid="stChatMessage"] em,
+[data-testid="stChatMessage"] code {
+    color: #1e293b !important;
+}
+
+/* Fondo blanco para los mensajes del chat */
+[data-testid="stChatMessage"] {
+    background: white !important;
+    border-radius: 14px !important;
+    padding: 10px 16px !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06) !important;
+}
+
+/* Mensaje del usuario con fondo ligeramente diferente */
+[data-testid="stChatMessage"][data-testid*="user"] {
+    background: #f0f9ff !important;
+}
+
+/* Texto general del área principal */
+.stMarkdown p, .stMarkdown li, .stMarkdown span { color: #1e293b !important; }
+section[data-testid="stMain"] p { color: #1e293b !important; }
 </style>
 """, unsafe_allow_html=True)
 
