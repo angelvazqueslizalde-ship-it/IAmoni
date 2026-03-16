@@ -142,6 +142,19 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 /* Ocultar elementos de Streamlit */
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
 
+/* Botón cerrar sesión del header */
+button[kind="secondary"] {
+    border-radius: 10px !important;
+    border: 1.5px solid #ef4444 !important;
+    color: #ef4444 !important;
+    font-weight: 700 !important;
+    background: #fff5f5 !important;
+}
+button[kind="secondary"]:hover {
+    background: #fef2f2 !important;
+    border-color: #dc2626 !important;
+}
+
 /* Botón de colapsar/abrir sidebar MÁS VISIBLE */
 [data-testid="collapsedControl"] {
     background: #667eea !important;
@@ -537,20 +550,20 @@ elif st.session_state.vista == "chat":
             st.rerun()
 
     # ── CHAT PRINCIPAL ────────────────────────────────────
+    # ── BARRA SUPERIOR FIJA (siempre visible, funciona en móvil) ──
     col_t, col_b = st.columns([3, 1])
     with col_t:
         st.markdown(f'<p class="titulo-moni">🤖 Hola, {nombre}!</p>', unsafe_allow_html=True)
         st.markdown(f"*{grado} · Tu mentora inteligente*")
     with col_b:
-        if perfil.get("total_sesiones", 1) > 1:
-            st.markdown(f"""
-            <div style="text-align:right; padding-top:18px;">
-                <span style="background:#f0fdf4; border:1.5px solid #4ade80; color:#16a34a;
-                             padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:800;">
-                    ✅ Sesión #{perfil.get('total_sesiones',1)}
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🚪 Cerrar sesión", key="logout_top", use_container_width=True):
+            perfil_actualizado = actualizar_perfil(perfil, st.session_state.messages)
+            guardar_perfil(alumno_id, perfil_actualizado)
+            st.session_state.vista = "inicio"
+            st.session_state.perfil_activo = None
+            st.session_state.messages = []
+            st.rerun()
 
     st.markdown("---")
 
