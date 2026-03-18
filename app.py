@@ -8,8 +8,14 @@ import hashlib
 import pandas as pd
 from datetime import datetime
 from PIL import Image
+import io
 
-st.set_page_config(page_title="Moni – Tu Mentora IA", page_icon="🌟", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="Moni – Tu Mentora IA",
+    page_icon="🌟",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 PERFILES_DIR = "perfiles"
 os.makedirs(PERFILES_DIR, exist_ok=True)
@@ -22,9 +28,29 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 [data-testid="stSidebar"] { background: linear-gradient(180deg, #0d1117 0%, #161b22 100%); }
 [data-testid="stSidebar"] * { color: #e6edf3 !important; }
 [data-testid="stSidebar"] hr { border-color: #30363d !important; }
-.card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.06); }
-.card-dark { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; }
-.titulo-moni { font-size: 2.4rem; font-weight: 900; background: linear-gradient(90deg, #0ea5e9, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    margin-bottom: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.card-dark {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+.titulo-moni {
+    font-size: 2.4rem;
+    font-weight: 900;
+    background: linear-gradient(90deg, #0ea5e9, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+}
 .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.3px; }
 .badge-niv  { background:#fff0f0; border:1.5px solid #f87171; color:#dc2626 !important; }
 .badge-prof { background:#f0fff4; border:1.5px solid #4ade80; color:#16a34a !important; }
@@ -32,7 +58,15 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 .badge-gen  { background:#f0f9ff; border:1.5px solid #60a5fa; color:#2563eb !important; }
 .hero { text-align: center; padding: 60px 20px 40px; }
 .hero-sub { font-size: 1.15rem; color: #64748b; margin: 8px 0 40px; }
-.role-card { background: white; border: 2px solid #e2e8f0; border-radius: 20px; padding: 30px 40px; text-align: center; min-width: 200px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+.role-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 30px 40px;
+    text-align: center;
+    min-width: 200px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
 .role-icon  { font-size: 3rem; margin-bottom: 10px; }
 .role-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; }
 .role-desc  { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
@@ -40,18 +74,52 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 .metric-num   { font-size: 2rem; font-weight: 900; color: #0ea5e9; }
 .metric-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
-button[kind="secondary"] { border-radius: 10px !important; border: 1.5px solid #ef4444 !important; color: #ef4444 !important; font-weight: 700 !important; background: #fff5f5 !important; }
+button[kind="secondary"] {
+    border-radius: 10px !important;
+    border: 1.5px solid #ef4444 !important;
+    color: #ef4444 !important;
+    font-weight: 700 !important;
+    background: #fff5f5 !important;
+}
 button[kind="secondary"]:hover { background: #fef2f2 !important; border-color: #dc2626 !important; }
-[data-testid="collapsedControl"] { position: fixed !important; top: 15px !important; left: 15px !important; background-color: #0ea5e9 !important; border-radius: 8px !important; padding: 6px !important; z-index: 999999 !important; display: flex !important; visibility: visible !important; opacity: 1 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; cursor: pointer !important; }
+[data-testid="collapsedControl"] {
+    position: fixed !important;
+    top: 15px !important;
+    left: 15px !important;
+    background-color: #0ea5e9 !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    cursor: pointer !important;
+}
 [data-testid="collapsedControl"] svg { fill: white !important; color: white !important; width: 26px !important; height: 26px !important; }
-[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] div, [data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em, [data-testid="stChatMessage"] code { color: #1e293b !important; }
-[data-testid="stChatMessage"] { background: white !important; border-radius: 14px !important; padding: 10px 16px !important; margin-bottom: 8px !important; box-shadow: 0 1px 6px rgba(0,0,0,0.06) !important; }
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] li,
+[data-testid="stChatMessage"] span,
+[data-testid="stChatMessage"] div,
+[data-testid="stChatMessage"] strong,
+[data-testid="stChatMessage"] em,
+[data-testid="stChatMessage"] code { color: #1e293b !important; }
+[data-testid="stChatMessage"] {
+    background: white !important;
+    border-radius: 14px !important;
+    padding: 10px 16px !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06) !important;
+}
 [data-testid="stChatMessage"][data-testid*="user"] { background: #f0f9ff !important; }
 .stMarkdown p, .stMarkdown li, .stMarkdown span { color: #1e293b !important; }
 section[data-testid="stMain"] p { color: #1e293b !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ═══════════════════════════════════════════════
+#  PROMPT DE MONI
+# ═══════════════════════════════════════════════
 INSTRUCCIONES_MONI = """
 Eres Moni, una mentora educativa IA muy amable, paciente y motivadora. Acompañas a estudiantes mexicanos de secundaria y preparatoria (12-18 años). Tu objetivo es que cada alumno aprenda mejor y, al terminar la prepa, pueda elegir su carrera con evidencia real.
 
@@ -88,6 +156,9 @@ REGLAS DE ORO
 - NUNCA uses lenguaje condescendiente.
 """
 
+# ═══════════════════════════════════════════════
+#  ANÁLISIS DE SENTIMIENTO
+# ═══════════════════════════════════════════════
 FRUSTRACION_KEYWORDS = [
     "no entiendo", "no comprendo", "me cuesta", "difícil", "dificil",
     "no puedo", "me rindo", "frustrado", "estresado", "odio", "horrible",
@@ -108,46 +179,49 @@ def analizar_sentimiento(texto):
         return "frustrado"
     return "neutral"
 
+# ═══════════════════════════════════════════════
+#  RECURSOS DE ESTUDIO
+# ═══════════════════════════════════════════════
 RECURSOS_ESTUDIO = {
     "matematicas": [
-        {"tipo": "video", "titulo": "Khan Academy: Álgebra", "url": "https://es.khanacademy.org/math/algebra"},
-        {"tipo": "video", "titulo": "Julio Profe (YouTube)", "url": "https://www.youtube.com/user/julioprofe"},
-        {"tipo": "ejercicios", "titulo": "ThatQuiz - Práctica", "url": "https://www.thatquiz.org/es/"},
+        {"tipo": "video",      "titulo": "Khan Academy: Álgebra",  "url": "https://es.khanacademy.org/math/algebra"},
+        {"tipo": "video",      "titulo": "Julio Profe (YouTube)",  "url": "https://www.youtube.com/user/julioprofe"},
+        {"tipo": "ejercicios", "titulo": "ThatQuiz - Práctica",    "url": "https://www.thatquiz.org/es/"},
     ],
     "fisica": [
-        {"tipo": "video", "titulo": "Khan Academy: Física", "url": "https://es.khanacademy.org/science/physics"},
-        {"tipo": "video", "titulo": "Física en 3 minutos", "url": "https://www.youtube.com/user/3minutosdeciencia"},
+        {"tipo": "video", "titulo": "Khan Academy: Física",       "url": "https://es.khanacademy.org/science/physics"},
+        {"tipo": "video", "titulo": "Física en 3 minutos",        "url": "https://www.youtube.com/user/3minutosdeciencia"},
     ],
     "quimica": [
-        {"tipo": "video", "titulo": "Khan Academy: Química", "url": "https://es.khanacademy.org/science/chemistry"},
-        {"tipo": "video", "titulo": "Breaking Vlad (YouTube)", "url": "https://www.youtube.com/c/BreakingVlad"},
+        {"tipo": "video", "titulo": "Khan Academy: Química",      "url": "https://es.khanacademy.org/science/chemistry"},
+        {"tipo": "video", "titulo": "Breaking Vlad (YouTube)",    "url": "https://www.youtube.com/c/BreakingVlad"},
     ],
     "historia": [
-        {"tipo": "video", "titulo": "Academia Play (YouTube)", "url": "https://www.youtube.com/user/AcademiaPlay"},
-        {"tipo": "video", "titulo": "Khan Academy: Historia", "url": "https://es.khanacademy.org/humanities/history"},
+        {"tipo": "video", "titulo": "Academia Play (YouTube)",    "url": "https://www.youtube.com/user/AcademiaPlay"},
+        {"tipo": "video", "titulo": "Khan Academy: Historia",     "url": "https://es.khanacademy.org/humanities/history"},
     ],
     "español": [
-        {"tipo": "video", "titulo": "Lengua y literatura (Educatina)", "url": "https://www.youtube.com/user/Educatina"},
-        {"tipo": "ejercicios", "titulo": "Ortografía interactiva", "url": "https://www.reglasdeortografia.com/"},
+        {"tipo": "video",      "titulo": "Educatina (YouTube)",   "url": "https://www.youtube.com/user/Educatina"},
+        {"tipo": "ejercicios", "titulo": "Ortografía interactiva","url": "https://www.reglasdeortografia.com/"},
     ],
     "ingles": [
-        {"tipo": "video", "titulo": "BBC Learning English", "url": "https://www.youtube.com/user/bbclearningenglish"},
-        {"tipo": "ejercicios", "titulo": "Duolingo", "url": "https://es.duolingo.com/"},
+        {"tipo": "video",      "titulo": "BBC Learning English",  "url": "https://www.youtube.com/user/bbclearningenglish"},
+        {"tipo": "ejercicios", "titulo": "Duolingo",              "url": "https://es.duolingo.com/"},
     ],
     "biologia": [
-        {"tipo": "video", "titulo": "Khan Academy: Biología", "url": "https://es.khanacademy.org/science/biology"},
-        {"tipo": "video", "titulo": "Amoeba Sisters (YouTube)", "url": "https://www.youtube.com/user/AmoebaSisters"},
+        {"tipo": "video", "titulo": "Khan Academy: Biología",     "url": "https://es.khanacademy.org/science/biology"},
+        {"tipo": "video", "titulo": "Amoeba Sisters (YouTube)",   "url": "https://www.youtube.com/user/AmoebaSisters"},
     ],
 }
 
 MATERIAS_SINONIMOS = {
-    "matematicas": ["matemáticas", "mate", "álgebra", "geometría", "cálculo", "trigonometría", "aritmética", "ecuaciones", "fracciones"],
-    "fisica": ["física", "fisica", "movimiento", "velocidad", "fuerza", "newton", "gravedad"],
-    "quimica": ["química", "quimica", "tabla periódica", "reacciones", "átomos", "moléculas"],
-    "historia": ["historia", "histórico", "revolución", "guerra", "civilización", "imperio"],
-    "español": ["español", "lengua", "literatura", "gramática", "ortografía", "redacción", "escritura"],
-    "ingles": ["inglés", "ingles", "vocabulario", "verbos", "idioma"],
-    "biologia": ["biología", "biologia", "células", "ecosistema", "cuerpo humano", "genética"],
+    "matematicas": ["matemáticas","mate","álgebra","geometría","cálculo","trigonometría","aritmética","ecuaciones","fracciones"],
+    "fisica":      ["física","fisica","movimiento","velocidad","fuerza","newton","gravedad"],
+    "quimica":     ["química","quimica","tabla periódica","reacciones","átomos","moléculas"],
+    "historia":    ["historia","histórico","revolución","guerra","civilización","imperio"],
+    "español":     ["español","lengua","literatura","gramática","ortografía","redacción","escritura"],
+    "ingles":      ["inglés","ingles","vocabulario","verbos","idioma"],
+    "biologia":    ["biología","biologia","células","ecosistema","cuerpo humano","genética"],
 }
 
 def extraer_materias_de_mensaje(texto):
@@ -160,7 +234,9 @@ def extraer_materias_de_mensaje(texto):
                 break
     return list(materias_detectadas)
 
-
+# ═══════════════════════════════════════════════
+#  CLASE MANEJADOR DE PERFILES
+# ═══════════════════════════════════════════════
 class ManejadorPerfiles:
 
     def __init__(self, directorio="perfiles"):
@@ -260,7 +336,9 @@ class ManejadorPerfiles:
 
 manejador = ManejadorPerfiles(PERFILES_DIR)
 
-
+# ═══════════════════════════════════════════════
+#  DETECCIÓN DE MODO
+# ═══════════════════════════════════════════════
 def detectar_modo(messages):
     for msg in reversed(messages):
         if msg["role"] == "assistant":
@@ -303,7 +381,9 @@ def detectar_modo(messages):
     mejor_modo = max(puntuacion, key=puntuacion.get)
     return mejor_modo if puntuacion[mejor_modo] >= 2 else "general"
 
-
+# ═══════════════════════════════════════════════
+#  API KEYS CON ROTACIÓN AUTOMÁTICA
+# ═══════════════════════════════════════════════
 def get_api_keys():
     keys = []
     for i in range(1, 6):
@@ -318,28 +398,53 @@ def get_api_keys():
                 keys.append(key)
     return keys
 
-
+# ═══════════════════════════════════════════════
+#  LLAMAR A GEMINI — FIX DE IMAGEN ✅
+# ═══════════════════════════════════════════════
 def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
     keys = get_api_keys()
     if not keys:
         return None, "❌ No hay API keys configuradas en Secrets."
+
     for key in keys:
         try:
             client = genai.Client(api_key=key)
+
             historial_gemini = []
             for i, msg in enumerate(messages):
                 rol = "user" if msg["role"] == "user" else "model"
+
+                # Último mensaje del usuario con imagen adjunta
                 if i == len(messages) - 1 and imagen_adjunta and rol == "user":
+                    # ── CONVERSIÓN CORRECTA DE IMAGEN ──
                     img = Image.open(imagen_adjunta)
-                    historial_gemini.append({
-                        "role": rol,
-                        "parts": [{"text": msg["content"]}, img]
-                    })
+                    if img.mode in ("RGBA", "P"):
+                        img = img.convert("RGB")
+                    img_bytes = io.BytesIO()
+                    img.save(img_bytes, format="JPEG")
+                    img_bytes.seek(0)
+
+                    imagen_part = types.Part.from_bytes(
+                        data=img_bytes.getvalue(),
+                        mime_type="image/jpeg"
+                    )
+                    historial_gemini.append(
+                        types.Content(
+                            role=rol,
+                            parts=[
+                                types.Part.from_text(text=msg["content"]),
+                                imagen_part
+                            ]
+                        )
+                    )
                 else:
-                    historial_gemini.append({
-                        "role": rol,
-                        "parts": [{"text": msg["content"]}]
-                    })
+                    historial_gemini.append(
+                        types.Content(
+                            role=rol,
+                            parts=[types.Part.from_text(text=msg["content"])]
+                        )
+                    )
+
             respuesta = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=historial_gemini,
@@ -348,6 +453,7 @@ def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
                 )
             )
             return respuesta.text, None
+
         except Exception as e:
             error = str(e).lower()
             if "quota" in error or "rate" in error or "429" in error:
@@ -356,9 +462,12 @@ def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
                 return None, "❌ API key inválida."
             else:
                 return None, f"❌ Error inesperado: {str(e)}"
+
     return None, "⏳ Todas las keys alcanzaron su límite. Intenta más tarde."
 
-
+# ═══════════════════════════════════════════════
+#  GENERAR REPORTE VOCACIONAL
+# ═══════════════════════════════════════════════
 def generar_reporte_vocacional(perfil, messages):
     keys = get_api_keys()
     if not keys:
@@ -417,7 +526,10 @@ Habla directamente al alumno de tú. Tono cálido, motivador y honesto.
             client = genai.Client(api_key=key)
             respuesta = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=[{"role": "user", "parts": [{"text": prompt_reporte}]}],
+                contents=[types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=prompt_reporte)]
+                )],
                 config=types.GenerateContentConfig(
                     system_instruction="Eres un orientador vocacional experto para estudiantes mexicanos de 12 a 18 años."
                 )
@@ -429,14 +541,19 @@ Habla directamente al alumno de tú. Tono cálido, motivador y honesto.
                 continue
             else:
                 return None, f"❌ Error: {str(e)}"
+
     return None, "⏳ Todas las keys alcanzaron su límite."
 
-
+# ═══════════════════════════════════════════════
+#  CACHÉ DEL DASHBOARD
+# ═══════════════════════════════════════════════
 @st.cache_data(ttl=300)
 def get_perfiles_cached():
     return manejador.listar_perfiles()
 
-
+# ═══════════════════════════════════════════════
+#  ESTADO INICIAL
+# ═══════════════════════════════════════════════
 for key, default in {
     "vista": "inicio",
     "perfil_activo": None,
@@ -584,6 +701,7 @@ elif st.session_state.vista == "chat":
     grado     = perfil["grado"]
     alumno_id = manejador.id_alumno(nombre, grado)
 
+    # ── SIDEBAR ──
     with st.sidebar:
         st.markdown(f"""
         <div style="text-align:center; padding:16px 0 8px;">
@@ -619,6 +737,7 @@ elif st.session_state.vista == "chat":
         st.markdown(f'<span class="badge badge-voc">🌟 Vocacional: {modos.get("vocacional",0)}</span>', unsafe_allow_html=True)
         st.markdown("---")
 
+        # Recursos personalizados
         if perfil.get("debilidades"):
             st.markdown("**📚 Recursos para ti**")
             for materia in perfil["debilidades"]:
@@ -654,8 +773,7 @@ elif st.session_state.vista == "chat":
         st.markdown("---")
         st.markdown("**📶 ¿Sin internet en casa?**")
         texto_offline = f"📚 Apuntes de Moni para {nombre}\n"
-        texto_offline += f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-        texto_offline += "="*40 + "\n\n"
+        texto_offline += f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n" + "="*40 + "\n\n"
         for msg in st.session_state.messages:
             rol_txt = "Tú" if msg["role"] == "user" else "🤖 Moni"
             contenido_limpio = msg["content"].replace("\n\n*[El alumno adjuntó una imagen de su tarea]*", " [Imagen enviada]")
@@ -711,6 +829,7 @@ elif st.session_state.vista == "chat":
             st.session_state.mensaje_counter = 0
             st.rerun()
 
+    # ── HEADER PRINCIPAL ──
     col_t, col_b = st.columns([3, 1])
     with col_t:
         st.markdown(f'<p class="titulo-moni">🤖 Hola, {nombre}!</p>', unsafe_allow_html=True)
@@ -729,6 +848,7 @@ elif st.session_state.vista == "chat":
 
     st.markdown("---")
 
+    # ── BARRA DE MODO ──
     modo_actual = detectar_modo(st.session_state.messages)
     modos_info  = {
         "nivelacion":     ("📚", "Modo Nivelación",        "#fef2f2", "#ef4444"),
@@ -755,6 +875,7 @@ elif st.session_state.vista == "chat":
     </div>
     """, unsafe_allow_html=True)
 
+    # ── BOTONES RÁPIDOS ──
     bc1, bc2, bc3 = st.columns(3)
     with bc1:
         texto_rapido = f"📚 Apuntes de Moni para {nombre}\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n" + "="*40 + "\n\n"
@@ -806,6 +927,7 @@ elif st.session_state.vista == "chat":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── MOSTRAR REPORTE ──
     reporte_mostrar = st.session_state.get("reporte_generado") or perfil.get("ultimo_reporte")
     if reporte_mostrar:
         st.markdown("""
@@ -819,10 +941,12 @@ elif st.session_state.vista == "chat":
             st.session_state.reporte_generado = None
             st.rerun()
 
+    # ── HISTORIAL DEL CHAT ──
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
+    # ── BIENVENIDA AUTOMÁTICA ──
     keys_disponibles = get_api_keys()
 
     if not st.session_state.messages and keys_disponibles:
@@ -848,6 +972,7 @@ Esta es tu sesión **#{sesion_num}** conmigo. Recuerdo todo lo que hemos trabaja
         st.session_state.perfil_activo = perfil
         st.rerun()
 
+    # ── INPUT CON IMAGEN ──
     if keys_disponibles:
         with st.expander("📷 ¿Tienes una foto de tu tarea? Súbela aquí"):
             foto_tarea = st.file_uploader(
