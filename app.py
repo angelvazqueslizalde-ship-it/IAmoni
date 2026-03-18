@@ -29,42 +29,30 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 [data-testid="stSidebar"] * { color: #e6edf3 !important; }
 [data-testid="stSidebar"] hr { border-color: #30363d !important; }
 .card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    margin-bottom: 12px;
+    background: white; border-radius: 16px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 12px;
     border: 1px solid rgba(0,0,0,0.06);
 }
 .card-dark {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 8px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 8px;
 }
 .titulo-moni {
-    font-size: 2.4rem;
-    font-weight: 900;
+    font-size: 2.4rem; font-weight: 900;
     background: linear-gradient(90deg, #0ea5e9, #8b5cf6, #ec4899);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1.1;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1;
 }
 .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.3px; }
 .badge-niv  { background:#fff0f0; border:1.5px solid #f87171; color:#dc2626 !important; }
 .badge-prof { background:#f0fff4; border:1.5px solid #4ade80; color:#16a34a !important; }
 .badge-voc  { background:#faf0ff; border:1.5px solid #c084fc; color:#7c3aed !important; }
 .badge-gen  { background:#f0f9ff; border:1.5px solid #60a5fa; color:#2563eb !important; }
+.badge-pts  { background:#fffbeb; border:1.5px solid #f59e0b; color:#b45309 !important; }
 .hero { text-align: center; padding: 60px 20px 40px; }
 .hero-sub { font-size: 1.15rem; color: #64748b; margin: 8px 0 40px; }
 .role-card {
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 20px;
-    padding: 30px 40px;
-    text-align: center;
-    min-width: 200px;
+    background: white; border: 2px solid #e2e8f0; border-radius: 20px;
+    padding: 30px 40px; text-align: center; min-width: 200px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 .role-icon  { font-size: 3rem; margin-bottom: 10px; }
@@ -75,40 +63,25 @@ html, body, [class*="css"] { font-family: 'Nunito', sans-serif; }
 .metric-label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
 button[kind="secondary"] {
-    border-radius: 10px !important;
-    border: 1.5px solid #ef4444 !important;
-    color: #ef4444 !important;
-    font-weight: 700 !important;
-    background: #fff5f5 !important;
+    border-radius: 10px !important; border: 1.5px solid #ef4444 !important;
+    color: #ef4444 !important; font-weight: 700 !important; background: #fff5f5 !important;
 }
 button[kind="secondary"]:hover { background: #fef2f2 !important; border-color: #dc2626 !important; }
 [data-testid="collapsedControl"] {
-    position: fixed !important;
-    top: 15px !important;
-    left: 15px !important;
-    background-color: #0ea5e9 !important;
-    border-radius: 8px !important;
-    padding: 6px !important;
-    z-index: 999999 !important;
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-    cursor: pointer !important;
+    position: fixed !important; top: 15px !important; left: 15px !important;
+    background-color: #0ea5e9 !important; border-radius: 8px !important;
+    padding: 6px !important; z-index: 999999 !important; display: flex !important;
+    visibility: visible !important; opacity: 1 !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; cursor: pointer !important;
 }
 [data-testid="collapsedControl"] svg { fill: white !important; color: white !important; width: 26px !important; height: 26px !important; }
-[data-testid="stChatMessage"] p,
-[data-testid="stChatMessage"] li,
-[data-testid="stChatMessage"] span,
-[data-testid="stChatMessage"] div,
-[data-testid="stChatMessage"] strong,
-[data-testid="stChatMessage"] em,
+[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li,
+[data-testid="stChatMessage"] span, [data-testid="stChatMessage"] div,
+[data-testid="stChatMessage"] strong, [data-testid="stChatMessage"] em,
 [data-testid="stChatMessage"] code { color: #1e293b !important; }
 [data-testid="stChatMessage"] {
-    background: white !important;
-    border-radius: 14px !important;
-    padding: 10px 16px !important;
-    margin-bottom: 8px !important;
+    background: white !important; border-radius: 14px !important;
+    padding: 10px 16px !important; margin-bottom: 8px !important;
     box-shadow: 0 1px 6px rgba(0,0,0,0.06) !important;
 }
 [data-testid="stChatMessage"][data-testid*="user"] { background: #f0f9ff !important; }
@@ -118,7 +91,7 @@ section[data-testid="stMain"] p { color: #1e293b !important; }
 """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════
-#  PROMPT DE MONI
+#  PROMPT DE MONI — con Socrático + Contexto Mexicano
 # ═══════════════════════════════════════════════
 INSTRUCCIONES_MONI = """
 Eres Moni, una mentora educativa IA muy amable, paciente y motivadora. Acompañas a estudiantes mexicanos de secundaria y preparatoria (12-18 años). Tu objetivo es que cada alumno aprenda mejor y, al terminar la prepa, pueda elegir su carrera con evidencia real.
@@ -129,31 +102,50 @@ Ya conoces el nombre y grado del alumno porque se registro. Saludalo por su nomb
 2. Cuales son tus materias favoritas o que temas te apasionan?
 3. Ya tienes idea de que carrera te gustaria estudiar?
 
+CONTEXTO MEXICANO — MUY IMPORTANTE
+Siempre que puedas, usa ejemplos de la vida cotidiana mexicana para explicar conceptos:
+- Matematicas: "Imaginate que vas al tianguis y tienes que calcular el cambio de 200 pesos..."
+- Historia: "Como cuando los Aztecas usaban el sistema vigesimal para contar..."
+- Fisica: "Como la trajectoria de un balón en un partido de futbol..."
+- Quimica: "Como cuando el molcajete tritura especias y cambia su forma física..."
+- Biologia: "Como los nopales del desierto que guardan agua para sobrevivir..."
+- Economia: "Como cuando suben los precios en el mercado después de las lluvias..."
+Adapta los ejemplos al contexto cultural mexicano. Esto hace que el aprendizaje sea más relevante y cercano.
+
 MODOS DE OPERACION (detectalos automaticamente)
 
-MODO NIVELACION - activado cuando el alumno pregunta sobre una materia dificil o muestra confusion:
+MODO NIVELACION — activado cuando el alumno pregunta sobre una materia difícil o muestra confusión:
 - Escribe exactamente al inicio: "📚 Modo nivelación activado ✨"
-- Se ultra paciente. Explica desde lo mas basico.
-- NUNCA des la respuesta directa. Usa preguntas guia, analogias, ejemplos similares.
-- Divide el problema en pasos pequenos. Celebra cada avance.
-- Si no entiende tras 2 intentos, cambia completamente tu estrategia.
+- Usa la TECNICA SOCRATICA: en lugar de explicar directamente, responde con preguntas que obliguen al alumno a pensar con lo que ya sabe. Ejemplos:
+  * "¿Qué crees que pasaría si...?"
+  * "¿Ya viste algo parecido en tu vida diaria?"
+  * "¿Si tuvieras que explicárselo a un amigo, por donde empezarías?"
+  * "¿Qué parte del problema ya entiendes?"
+- Divide el problema en pasos pequeños mediante preguntas guía.
+- NUNCA des la respuesta directa. Guía con preguntas y ejemplos del contexto mexicano.
+- Celebra cada avance con mucho entusiasmo.
+- Si tras 2 intentos con preguntas el alumno sigue sin entender, cambia completamente tu estrategia de preguntas.
 
-MODO PROFUNDIZACION - activado cuando el alumno pregunta sobre algo que le apasiona:
+MODO PROFUNDIZACION — activado cuando el alumno pregunta sobre algo que le apasiona:
 - Escribe exactamente al inicio: "🚀 Modo profundización activado ✨"
-- Ofrece datos curiosos, conexiones con el mundo real, retos adicionales.
-- Conectalo con carreras y aplicaciones profesionales reales.
+- Ofrece datos curiosos, conexiones con el mundo real y retos adicionales.
+- Al final de cada respuesta de profundización, incluye UN RETO: "🏆 Reto de sabiduría: [pregunta desafiante relacionada con el tema]"
+- Si el alumno resuelve el reto correctamente, felicítalo con: "🌟 ¡Ganaste puntos de sabiduría! ¡Excelente razonamiento!"
+- Conecta siempre con aplicaciones profesionales reales en México.
 
-MODO VOCACIONAL - activado cuando el alumno pregunta sobre carreras o su futuro:
+MODO VOCACIONAL — activado cuando el alumno pregunta sobre carreras o su futuro:
 - Escribe exactamente al inicio: "🌟 Orientación vocacional ✨"
-- Conecta sus fortalezas observadas en la conversacion con carreras concretas.
-- Da 2-3 opciones con descripcion del dia a dia de cada una.
+- Conecta sus fortalezas observadas con carreras concretas disponibles en México.
+- Da 2-3 opciones con descripción del día a día y universidades donde se puede estudiar en México.
+- Menciona el mercado laboral mexicano actual para esa carrera.
 
 REGLAS DE ORO
 - Personaliza SIEMPRE con el nombre del alumno.
-- Usa emojis estrategicamente para hacer el aprendizaje divertido.
-- Si el alumno esta frustrado, primero valida su emocion, luego explica.
-- NUNCA des la solucion directa a tareas o ejercicios.
+- Usa emojis estratégicamente para hacer el aprendizaje divertido.
+- Si el alumno está frustrado, primero valida su emoción, luego guía con preguntas.
+- NUNCA des la solución directa a tareas o ejercicios.
 - NUNCA uses lenguaje condescendiente.
+- Usa el tuteo y lenguaje natural mexicano (está bien decir "órale", "chido", "sale").
 """
 
 # ═══════════════════════════════════════════════
@@ -189,28 +181,28 @@ RECURSOS_ESTUDIO = {
         {"tipo": "ejercicios", "titulo": "ThatQuiz - Práctica",    "url": "https://www.thatquiz.org/es/"},
     ],
     "fisica": [
-        {"tipo": "video", "titulo": "Khan Academy: Física",       "url": "https://es.khanacademy.org/science/physics"},
-        {"tipo": "video", "titulo": "Física en 3 minutos",        "url": "https://www.youtube.com/user/3minutosdeciencia"},
+        {"tipo": "video", "titulo": "Khan Academy: Física",        "url": "https://es.khanacademy.org/science/physics"},
+        {"tipo": "video", "titulo": "Física en 3 minutos",         "url": "https://www.youtube.com/user/3minutosdeciencia"},
     ],
     "quimica": [
-        {"tipo": "video", "titulo": "Khan Academy: Química",      "url": "https://es.khanacademy.org/science/chemistry"},
-        {"tipo": "video", "titulo": "Breaking Vlad (YouTube)",    "url": "https://www.youtube.com/c/BreakingVlad"},
+        {"tipo": "video", "titulo": "Khan Academy: Química",       "url": "https://es.khanacademy.org/science/chemistry"},
+        {"tipo": "video", "titulo": "Breaking Vlad (YouTube)",     "url": "https://www.youtube.com/c/BreakingVlad"},
     ],
     "historia": [
-        {"tipo": "video", "titulo": "Academia Play (YouTube)",    "url": "https://www.youtube.com/user/AcademiaPlay"},
-        {"tipo": "video", "titulo": "Khan Academy: Historia",     "url": "https://es.khanacademy.org/humanities/history"},
+        {"tipo": "video", "titulo": "Academia Play (YouTube)",     "url": "https://www.youtube.com/user/AcademiaPlay"},
+        {"tipo": "video", "titulo": "Khan Academy: Historia",      "url": "https://es.khanacademy.org/humanities/history"},
     ],
     "español": [
-        {"tipo": "video",      "titulo": "Educatina (YouTube)",   "url": "https://www.youtube.com/user/Educatina"},
-        {"tipo": "ejercicios", "titulo": "Ortografía interactiva","url": "https://www.reglasdeortografia.com/"},
+        {"tipo": "video",      "titulo": "Educatina (YouTube)",    "url": "https://www.youtube.com/user/Educatina"},
+        {"tipo": "ejercicios", "titulo": "Ortografía interactiva", "url": "https://www.reglasdeortografia.com/"},
     ],
     "ingles": [
-        {"tipo": "video",      "titulo": "BBC Learning English",  "url": "https://www.youtube.com/user/bbclearningenglish"},
-        {"tipo": "ejercicios", "titulo": "Duolingo",              "url": "https://es.duolingo.com/"},
+        {"tipo": "video",      "titulo": "BBC Learning English",   "url": "https://www.youtube.com/user/bbclearningenglish"},
+        {"tipo": "ejercicios", "titulo": "Duolingo",               "url": "https://es.duolingo.com/"},
     ],
     "biologia": [
-        {"tipo": "video", "titulo": "Khan Academy: Biología",     "url": "https://es.khanacademy.org/science/biology"},
-        {"tipo": "video", "titulo": "Amoeba Sisters (YouTube)",   "url": "https://www.youtube.com/user/AmoebaSisters"},
+        {"tipo": "video", "titulo": "Khan Academy: Biología",      "url": "https://es.khanacademy.org/science/biology"},
+        {"tipo": "video", "titulo": "Amoeba Sisters (YouTube)",    "url": "https://www.youtube.com/user/AmoebaSisters"},
     ],
 }
 
@@ -233,6 +225,51 @@ def extraer_materias_de_mensaje(texto):
                 materias_detectadas.add(materia)
                 break
     return list(materias_detectadas)
+
+# ═══════════════════════════════════════════════
+#  ACTUALIZAR PERFIL DINÁMICO (debilidades + intereses)
+# ═══════════════════════════════════════════════
+def actualizar_perfil_dinamico(perfil, mensaje_usuario):
+    """
+    Detecta materias en el mensaje y actualiza debilidades o intereses
+    según el sentimiento del alumno en tiempo real.
+    """
+    materias = extraer_materias_de_mensaje(mensaje_usuario)
+    if not materias:
+        return perfil
+
+    sentimiento = analizar_sentimiento(mensaje_usuario)
+    msg_lower   = mensaje_usuario.lower()
+
+    for materia in materias:
+        # Si muestra frustración → debilidad
+        if sentimiento == "frustrado":
+            if materia not in perfil.get("debilidades", []):
+                perfil.setdefault("debilidades", []).append(materia)
+
+        # Si muestra gusto o interés → interés
+        if any(p in msg_lower for p in ["amo", "me gusta", "me encanta", "me apasiona", "es chido", "me llama"]):
+            if materia not in perfil.get("intereses", []):
+                perfil.setdefault("intereses", []).append(materia)
+            # Si también estaba en debilidades y ahora le gusta, la removemos
+            if materia in perfil.get("debilidades", []):
+                perfil["debilidades"].remove(materia)
+
+    return perfil
+
+# ═══════════════════════════════════════════════
+#  GAMIFICACIÓN — detectar si ganó puntos
+# ═══════════════════════════════════════════════
+def detectar_puntos_ganados(respuesta_moni):
+    """Detecta si Moni le dio puntos al alumno en su respuesta."""
+    indicadores = [
+        "ganaste puntos de sabiduría",
+        "puntos de sabiduría",
+        "¡ganaste puntos",
+        "ganaste puntos"
+    ]
+    respuesta_lower = respuesta_moni.lower()
+    return any(ind in respuesta_lower for ind in indicadores)
 
 # ═══════════════════════════════════════════════
 #  CLASE MANEJADOR DE PERFILES
@@ -282,6 +319,7 @@ class ManejadorPerfiles:
             "notas_maestro": "",
             "ultimo_indice_contado": 0,
             "ultimo_reporte": "",
+            "puntos_sabiduria": 0,      # ← GAMIFICACIÓN
             "historial": []
         }
 
@@ -306,6 +344,10 @@ class ManejadorPerfiles:
                         perfil["modos"]["profundizacion"] += 1
                     elif "orientación vocacional" in contenido or "orientacion vocacional" in contenido:
                         perfil["modos"]["vocacional"] += 1
+                    # BUG FIX: detectar puntos solo una vez por mensaje (no múltiples)
+                    if detectar_puntos_ganados(msg["content"]):
+                        perfil["puntos_sabiduria"] = perfil.get("puntos_sabiduria", 0) + 10
+                        break  # Solo suma una vez aunque aparezca varias veces en el mensaje
             perfil["ultimo_indice_contado"] = len(messages)
             perfil["historial"] = (
                 messages[-self.max_historial:]
@@ -399,7 +441,7 @@ def get_api_keys():
     return keys
 
 # ═══════════════════════════════════════════════
-#  LLAMAR A GEMINI — FIX DE IMAGEN ✅
+#  LLAMAR A GEMINI — imagen corregida + temperature
 # ═══════════════════════════════════════════════
 def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
     keys = get_api_keys()
@@ -414,9 +456,8 @@ def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
             for i, msg in enumerate(messages):
                 rol = "user" if msg["role"] == "user" else "model"
 
-                # Último mensaje del usuario con imagen adjunta
                 if i == len(messages) - 1 and imagen_adjunta and rol == "user":
-                    # ── CONVERSIÓN CORRECTA DE IMAGEN ──
+                    # ── IMAGEN: conversión correcta a bytes ──
                     img = Image.open(imagen_adjunta)
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
@@ -449,7 +490,8 @@ def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
                 model="gemini-2.5-flash",
                 contents=historial_gemini,
                 config=types.GenerateContentConfig(
-                    system_instruction=instrucciones
+                    system_instruction=instrucciones,
+                    temperature=0.7   # Creatividad controlada
                 )
             )
             return respuesta.text, None
@@ -478,11 +520,14 @@ def generar_reporte_vocacional(perfil, messages):
         if msg["role"] == "user":
             resumen_conversaciones += f"- Alumno: {msg['content'][:150]}\n"
 
-    modos = perfil.get("modos", {})
+    modos   = perfil.get("modos", {})
+    puntos  = perfil.get("puntos_sabiduria", 0)
+    intereses   = ', '.join(perfil.get('intereses', [])) or 'No registrados'
+    debilidades = ', '.join(perfil.get('debilidades', [])) or 'No registradas'
 
     prompt_reporte = f"""
-Eres un orientador vocacional experto. Analiza el siguiente perfil de un estudiante
-mexicano y genera un reporte vocacional personalizado, cálido y motivador.
+Eres un orientador vocacional experto en el sistema educativo mexicano. Analiza el siguiente
+perfil de un estudiante y genera un reporte vocacional personalizado, cálido y motivador.
 
 DATOS DEL ALUMNO:
 - Nombre: {perfil.get('nombre')}
@@ -490,10 +535,12 @@ DATOS DEL ALUMNO:
 - Primera sesión con Moni: {perfil.get('primera_sesion')}
 - Total de sesiones: {perfil.get('total_sesiones')}
 - Mensajes enviados: {perfil.get('mensajes_totales')}
+- Puntos de sabiduría ganados: {puntos}
 - Veces en modo nivelación: {modos.get('nivelacion', 0)}
 - Veces en modo profundización: {modos.get('profundizacion', 0)}
 - Veces en orientación vocacional: {modos.get('vocacional', 0)}
-- Materias de mejora detectadas: {', '.join(perfil.get('debilidades', [])) or 'No registradas'}
+- Materias de interés detectadas: {intereses}
+- Materias de mejora detectadas: {debilidades}
 
 MUESTRA DE SUS CONVERSACIONES CON MONI:
 {resumen_conversaciones[:2000]}
@@ -504,21 +551,26 @@ Genera un reporte con EXACTAMENTE estas secciones:
 {'='*40}
 
 📚 TU PERFIL COMO APRENDIZ
-[2-3 oraciones describiendo cómo aprende este alumno]
+[2-3 oraciones describiendo cómo aprende este alumno basándote en sus datos reales]
+
+⭐ TUS PUNTOS DE SABIDURÍA: {puntos} puntos
+[1 oración motivadora sobre lo que significan sus puntos]
 
 💪 TUS FORTALEZAS DETECTADAS
-[Lista de 3-4 fortalezas específicas]
+[Lista de 3-4 fortalezas específicas observadas]
 
 🌱 TUS ÁREAS DE CRECIMIENTO
-[Lista de 2-3 áreas donde ha mostrado esfuerzo]
+[Lista de 2-3 áreas donde ha mostrado esfuerzo y superación]
 
-🎯 CARRERAS QUE VAN CONTIGO
-[3 carreras recomendadas con justificación y materias clave]
+🎯 CARRERAS QUE VAN CONTIGO (en México)
+[3 carreras recomendadas, cada una con: nombre, por qué encaja con su perfil,
+ materias clave y universidades mexicanas donde estudiarla]
 
 ✨ MENSAJE PARA TU FUTURO
-[Párrafo motivacional personalizado de 3-4 oraciones]
+[Párrafo motivacional personalizado de 3-4 oraciones, en español mexicano natural]
 
 Habla directamente al alumno de tú. Tono cálido, motivador y honesto.
+Usa referencias al contexto mexicano donde sea relevante.
 """
 
     for key in keys:
@@ -531,7 +583,8 @@ Habla directamente al alumno de tú. Tono cálido, motivador y honesto.
                     parts=[types.Part.from_text(text=prompt_reporte)]
                 )],
                 config=types.GenerateContentConfig(
-                    system_instruction="Eres un orientador vocacional experto para estudiantes mexicanos de 12 a 18 años."
+                    system_instruction="Eres un orientador vocacional experto en el sistema educativo mexicano.",
+                    temperature=0.7
                 )
             )
             return respuesta.text, None
@@ -596,7 +649,6 @@ if st.session_state.vista == "inicio":
             if st.button("Entrar como alumno", key="btn_alumno", use_container_width=True):
                 st.session_state.vista = "alumno_login"
                 st.rerun()
-
         with col_b:
             st.markdown("""
             <div class="role-card">
@@ -613,8 +665,8 @@ if st.session_state.vista == "inicio":
         st.markdown("""
         <div class="card" style="margin-top:20px;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.85rem; color:#475569;">
-                <div>📚 <b>Nivelación</b> — explica sin dar la tarea resuelta</div>
-                <div>🚀 <b>Profundización</b> — retos extra en lo que te apasiona</div>
+                <div>📚 <b>Nivelación socrática</b> — aprende pensando, no memorizando</div>
+                <div>🚀 <b>Profundización</b> — retos y puntos de sabiduría ⭐</div>
                 <div>🌟 <b>Orientación vocacional</b> — carreras según tu perfil real</div>
                 <div>🔐 <b>Privacidad</b> — tu perfil protegido con PIN</div>
             </div>
@@ -647,8 +699,7 @@ elif st.session_state.vista == "alumno_login":
             ])
             pin = st.text_input(
                 "Tu PIN de 4 dígitos 🔐",
-                type="password",
-                max_chars=4,
+                type="password", max_chars=4,
                 placeholder="Si es tu primera vez, elige uno nuevo"
             )
             submitted = st.form_submit_button("¡Entrar con Moni! 🚀", use_container_width=True)
@@ -669,9 +720,14 @@ elif st.session_state.vista == "alumno_login":
                     if manejador.verificar_pin(perfil_exist, pin.strip()):
                         perfil_exist["ultima_sesion"]  = datetime.now().strftime("%Y-%m-%d %H:%M")
                         perfil_exist["total_sesiones"] = perfil_exist.get("total_sesiones", 1) + 1
+                        # Asegurar campo de puntos en perfiles viejos
+                        perfil_exist.setdefault("puntos_sabiduria", 0)
+                        perfil_exist.setdefault("intereses", [])
+                        perfil_exist.setdefault("debilidades", [])
                         st.session_state.perfil_activo  = perfil_exist
                         st.session_state.messages       = perfil_exist.get("historial", [])
                         st.session_state.es_primera_vez = False
+                        # BUG FIX: reiniciar contador para no acumular entre sesiones
                         st.session_state.mensaje_counter = 0
                         st.session_state.vista = "chat"
                         st.rerun()
@@ -700,6 +756,7 @@ elif st.session_state.vista == "chat":
     nombre    = perfil["nombre"]
     grado     = perfil["grado"]
     alumno_id = manejador.id_alumno(nombre, grado)
+    puntos    = perfil.get("puntos_sabiduria", 0)
 
     # ── SIDEBAR ──
     with st.sidebar:
@@ -729,6 +786,9 @@ elif st.session_state.vista == "chat":
                 <div style="font-size:0.65rem; color:#8b949e;">MENSAJES</div>
             </div>""", unsafe_allow_html=True)
 
+        # Puntos de sabiduría
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(f'<span class="badge badge-pts">⭐ Puntos de sabiduría: {puntos}</span>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(f'<span class="badge badge-niv">📚 Nivelación: {modos.get("nivelacion",0)}</span>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
@@ -737,7 +797,13 @@ elif st.session_state.vista == "chat":
         st.markdown(f'<span class="badge badge-voc">🌟 Vocacional: {modos.get("vocacional",0)}</span>', unsafe_allow_html=True)
         st.markdown("---")
 
-        # Recursos personalizados
+        # Intereses detectados
+        if perfil.get("intereses"):
+            st.markdown("**💚 Tus intereses:**")
+            st.markdown(", ".join([f"`{i}`" for i in perfil["intereses"]]))
+            st.markdown("<br>", unsafe_allow_html=True)
+
+        # Recursos personalizados por debilidades
         if perfil.get("debilidades"):
             st.markdown("**📚 Recursos para ti**")
             for materia in perfil["debilidades"]:
@@ -772,8 +838,9 @@ elif st.session_state.vista == "chat":
 
         st.markdown("---")
         st.markdown("**📶 ¿Sin internet en casa?**")
-        texto_offline = f"📚 Apuntes de Moni para {nombre}\n"
-        texto_offline += f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n" + "="*40 + "\n\n"
+        texto_offline  = f"📚 Apuntes de Moni para {nombre}\n"
+        texto_offline += f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+        texto_offline += f"⭐ Puntos de sabiduría: {puntos}\n" + "="*40 + "\n\n"
         for msg in st.session_state.messages:
             rol_txt = "Tú" if msg["role"] == "user" else "🤖 Moni"
             contenido_limpio = msg["content"].replace("\n\n*[El alumno adjuntó una imagen de su tarea]*", " [Imagen enviada]")
@@ -848,13 +915,13 @@ elif st.session_state.vista == "chat":
 
     st.markdown("---")
 
-    # ── BARRA DE MODO ──
+    # ── BARRA DE MODO + PUNTOS ──
     modo_actual = detectar_modo(st.session_state.messages)
     modos_info  = {
-        "nivelacion":     ("📚", "Modo Nivelación",        "#fef2f2", "#ef4444"),
-        "profundizacion": ("🚀", "Modo Profundización",    "#f0fdf4", "#22c55e"),
-        "vocacional":     ("🌟", "Orientación Vocacional", "#faf5ff", "#a855f7"),
-        "general":        ("💬", "Conversación General",   "#f0f9ff", "#0ea5e9"),
+        "nivelacion":     ("📚", "Modo Nivelación Socrática", "#fef2f2", "#ef4444"),
+        "profundizacion": ("🚀", "Modo Profundización",       "#f0fdf4", "#22c55e"),
+        "vocacional":     ("🌟", "Orientación Vocacional",    "#faf5ff", "#a855f7"),
+        "general":        ("💬", "Conversación General",      "#f0f9ff", "#0ea5e9"),
     }
     icono_m, label_m, bg_m, color_m = modos_info.get(modo_actual, modos_info["general"])
     modos_d = perfil.get("modos", {})
@@ -867,6 +934,7 @@ elif st.session_state.vista == "chat":
             <span style="font-weight:800; color:{color_m}; font-size:0.9rem;">{label_m}</span>
         </div>
         <div style="display:flex; gap:12px; font-size:0.78rem; color:#64748b;">
+            <span>⭐ <b>{puntos} pts</b></span>
             <span>📚 <b>{modos_d.get('nivelacion',0)}</b></span>
             <span>🚀 <b>{modos_d.get('profundizacion',0)}</b></span>
             <span>🌟 <b>{modos_d.get('vocacional',0)}</b></span>
@@ -878,7 +946,9 @@ elif st.session_state.vista == "chat":
     # ── BOTONES RÁPIDOS ──
     bc1, bc2, bc3 = st.columns(3)
     with bc1:
-        texto_rapido = f"📚 Apuntes de Moni para {nombre}\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n" + "="*40 + "\n\n"
+        texto_rapido  = f"📚 Apuntes de Moni para {nombre}\n"
+        texto_rapido += f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+        texto_rapido += f"⭐ Puntos de sabiduría: {puntos}\n" + "="*40 + "\n\n"
         for msg in st.session_state.messages:
             rol_txt = "Tú" if msg["role"] == "user" else "🤖 Moni"
             texto_rapido += f"{rol_txt}:\n{msg['content']}\n\n" + "-"*40 + "\n\n"
@@ -941,7 +1011,7 @@ elif st.session_state.vista == "chat":
             st.session_state.reporte_generado = None
             st.rerun()
 
-    # ── HISTORIAL DEL CHAT ──
+    # ── HISTORIAL ──
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -953,14 +1023,14 @@ elif st.session_state.vista == "chat":
         if st.session_state.es_primera_vez:
             bienvenida = f"""¡Hola, **{nombre}**! 🎉✨ Soy **Moni**, tu mentora inteligente.
 
-Estoy aquí para acompañarte en {grado} y en todo lo que viene después. Voy a ayudarte con las materias que se te dificulten, potenciar las que te apasionan y, cuando llegue el momento, orientarte en qué carrera va mejor contigo. 🎯
+Estoy aquí para acompañarte en {grado} y en todo lo que viene después. Voy a ayudarte con las materias que se te dificulten usando preguntas que te hagan pensar, potenciar las que te apasionan con retos para ganar ⭐ **puntos de sabiduría**, y orientarte sobre tu carrera cuando llegue el momento. 🎯
 
-Para conocerte mejor, cuéntame: **¿qué materias se te hacen más difíciles?** No te preocupes, no te voy a juzgar, ¡al contrario, para eso estoy! 😊"""
+Para conocerte mejor, cuéntame: **¿qué materias se te hacen más difíciles?** No te preocupes, ¡para eso estoy! 😊"""
         else:
             sesion_num = perfil.get("total_sesiones", 2)
             bienvenida = f"""¡Hola de nuevo, **{nombre}**! 🌟 ¡Qué bueno que regresaste!
 
-Esta es tu sesión **#{sesion_num}** conmigo. Recuerdo todo lo que hemos trabajado juntos. 💪
+Esta es tu sesión **#{sesion_num}** conmigo. Llevas **{puntos} puntos de sabiduría** ⭐ acumulados. ¡Sigue así! 💪
 
 **¿En qué te puedo ayudar hoy?** 😊"""
 
@@ -1006,15 +1076,13 @@ Esta es tu sesión **#{sesion_num}** conmigo. Recuerdo todo lo que hemos trabaja
             st.session_state.messages.append({"role": "user", "content": texto_historial})
             st.session_state.mensaje_counter += 1
 
+            # Análisis de sentimiento
             sentimiento = analizar_sentimiento(prompt)
             st.session_state.frustrado = (sentimiento == "frustrado")
 
-            modo_det = detectar_modo(st.session_state.messages)
-            if modo_det == "nivelacion":
-                materias_detectadas = extraer_materias_de_mensaje(prompt)
-                for materia in materias_detectadas:
-                    if materia not in perfil.get("debilidades", []):
-                        perfil["debilidades"].append(materia)
+            # Actualizar perfil dinámico (debilidades + intereses en tiempo real)
+            perfil = actualizar_perfil_dinamico(perfil, prompt)
+            st.session_state.perfil_activo = perfil
 
             contexto_perfil = f"""
 INFORMACION DEL ALUMNO:
@@ -1022,14 +1090,16 @@ INFORMACION DEL ALUMNO:
 - Grado: {grado}
 - Sesion numero: {perfil.get('total_sesiones', 1)}
 - Primera sesion: {perfil.get('primera_sesion', 'hoy')}
+- Puntos de sabiduria acumulados: {perfil.get('puntos_sabiduria', 0)}
 - Veces en modo nivelacion: {perfil.get('modos', {}).get('nivelacion', 0)}
 - Veces en modo profundizacion: {perfil.get('modos', {}).get('profundizacion', 0)}
-- Areas de mejora detectadas: {', '.join(perfil.get('debilidades', [])) if perfil.get('debilidades') else 'Ninguna aun'}
+- Materias de interes: {', '.join(perfil.get('intereses', [])) or 'Ninguna aun'}
+- Materias de mejora: {', '.join(perfil.get('debilidades', [])) or 'Ninguna aun'}
 {"- Es alumno NUEVO, primera sesion." if perfil.get('total_sesiones', 1) == 1 else f"- Alumno RECURRENTE con {perfil.get('total_sesiones',1)} sesiones."}
 """
             contexto_adicional = ""
             if st.session_state.get("frustrado"):
-                contexto_adicional = "\n\nEL ALUMNO PARECE FRUSTRADO. Responde con mucha empatía, valida su emoción primero, y luego ofrece ayuda paso a paso."
+                contexto_adicional = "\n\nEL ALUMNO PARECE FRUSTRADO. Primero valida su emoción con empatía, luego usa preguntas socráticas simples para guiarlo."
 
             instrucciones_completas = INSTRUCCIONES_MONI + "\n\n" + contexto_perfil + contexto_adicional
 
@@ -1046,9 +1116,12 @@ INFORMACION DEL ALUMNO:
                     else:
                         st.markdown(texto)
                         st.session_state.messages.append({"role": "assistant", "content": texto})
+                        # Guardar cada 5 mensajes
                         if st.session_state.mensaje_counter % 5 == 0:
                             manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
                             st.session_state.perfil_activo = perfil
+            # BUG FIX: limpiar imagen después de enviar para no reutilizarla
+            st.session_state.ultima_imagen = None
             st.rerun()
     else:
         st.warning("⚠️ No hay API keys configuradas. Contacta al administrador.")
@@ -1156,7 +1229,7 @@ elif st.session_state.vista == "dashboard":
         total_msgs     = sum(p.get("mensajes_totales", 0) for p in perfiles)
         total_niv      = sum(p.get("modos", {}).get("nivelacion", 0) for p in perfiles)
         total_prof     = sum(p.get("modos", {}).get("profundizacion", 0) for p in perfiles)
-        total_voc      = sum(p.get("modos", {}).get("vocacional", 0) for p in perfiles)
+        total_pts      = sum(p.get("puntos_sabiduria", 0) for p in perfiles)
 
         cols = st.columns(6)
         for col, num, label, color in [
@@ -1165,7 +1238,7 @@ elif st.session_state.vista == "dashboard":
             (cols[2], total_msgs,     "Mensajes",   "#f59e0b"),
             (cols[3], total_niv,      "Nivelación", "#ef4444"),
             (cols[4], total_prof,     "Profund.",   "#22c55e"),
-            (cols[5], total_voc,      "Vocacional", "#a855f7"),
+            (cols[5], total_pts,      "⭐ Puntos",  "#b45309"),
         ]:
             with col:
                 st.markdown(f"""
@@ -1184,6 +1257,7 @@ elif st.session_state.vista == "dashboard":
                 "Nivelación":     p.get("modos", {}).get("nivelacion", 0),
                 "Profundización": p.get("modos", {}).get("profundizacion", 0),
                 "Vocacional":     p.get("modos", {}).get("vocacional", 0),
+                "⭐ Puntos":      p.get("puntos_sabiduria", 0),
             } for p in perfiles])
             st.bar_chart(df_modos.set_index("Alumno"))
             st.markdown("---")
@@ -1197,8 +1271,9 @@ elif st.session_state.vista == "dashboard":
                 grado_p    = p.get("grado", "")
                 sesiones_p = p.get("total_sesiones", 0)
                 ultima_p   = p.get("ultima_sesion", "")[:10]
+                pts_p      = p.get("puntos_sabiduria", 0)
                 if st.button(
-                    f"**{nombre_p}** · {grado_p}\n📅 {ultima_p} · {sesiones_p} sesiones",
+                    f"**{nombre_p}** · {grado_p}\n📅 {ultima_p} · {sesiones_p} ses. · ⭐{pts_p}pts",
                     key=f"alumno_{i}",
                     use_container_width=True
                 ):
@@ -1224,6 +1299,8 @@ elif st.session_state.vista == "dashboard":
                 msgs_d      = detalle.get("mensajes_totales", 0)
                 modos_d     = detalle.get("modos", {})
                 debilidades = detalle.get("debilidades", [])
+                intereses_d = detalle.get("intereses", [])
+                puntos_d    = detalle.get("puntos_sabiduria", 0)
 
                 st.markdown(f"""
                 <div class="card">
@@ -1236,6 +1313,9 @@ elif st.session_state.vista == "dashboard":
                         <div><b>Total sesiones:</b><br>{sesiones_d}</div>
                         <div><b>Mensajes enviados:</b><br>{msgs_d}</div>
                     </div>
+                    <div style="margin-top:12px;">
+                        <span class="badge badge-pts">⭐ Puntos de sabiduría: {puntos_d}</span>
+                    </div>
                     <div style="margin-top:16px;">
                         <b style="font-size:0.85rem; color:#475569;">MODOS DE USO</b>
                         <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
@@ -1245,6 +1325,9 @@ elif st.session_state.vista == "dashboard":
                         </div>
                     </div>
                     <div style="margin-top:12px; font-size:0.82rem; color:#374151;">
+                        <b>💚 Intereses:</b> {', '.join(intereses_d) if intereses_d else 'Ninguno registrado'}
+                    </div>
+                    <div style="margin-top:6px; font-size:0.82rem; color:#374151;">
                         <b>📚 Áreas de mejora:</b> {', '.join(debilidades) if debilidades else 'Ninguna registrada'}
                     </div>
                 </div>
