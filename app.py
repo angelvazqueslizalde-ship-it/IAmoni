@@ -335,6 +335,7 @@ class ManejadorPerfiles:
                 m for m in messages[ultimo_idx:] if m["role"] == "user"
             ]
             perfil["mensajes_totales"] = perfil.get("mensajes_totales", 0) + len(mensajes_nuevos_usuario)
+            puntos_sumados = False
             for msg in messages[ultimo_idx:]:
                 if msg["role"] == "assistant":
                     contenido = msg["content"].lower()
@@ -344,10 +345,10 @@ class ManejadorPerfiles:
                         perfil["modos"]["profundizacion"] += 1
                     elif "orientación vocacional" in contenido or "orientacion vocacional" in contenido:
                         perfil["modos"]["vocacional"] += 1
-                    # BUG FIX: detectar puntos solo una vez por mensaje (no múltiples)
-                    if detectar_puntos_ganados(msg["content"]):
+                    # Sumar puntos solo la primera vez que aparezcan en la sesión
+                    if not puntos_sumados and detectar_puntos_ganados(msg["content"]):
                         perfil["puntos_sabiduria"] = perfil.get("puntos_sabiduria", 0) + 10
-                        break  # Solo suma una vez aunque aparezca varias veces en el mensaje
+                        puntos_sumados = True
             perfil["ultimo_indice_contado"] = len(messages)
             perfil["historial"] = (
                 messages[-self.max_historial:]
@@ -434,7 +435,7 @@ def get_api_keys():
             key = st.secrets[nombre]
             if key:
                 keys.append(key)
-        except:
+        except Exception:
             key = os.environ.get(nombre, "")
             if key:
                 keys.append(key)
@@ -443,6 +444,8 @@ def get_api_keys():
 # ═══════════════════════════════════════════════
 #  LLAMAR A GEMINI — imagen corregida + temperature
 # ═══════════════════════════════════════════════
+MAX_MENSAJES_API = 20  # Límite de mensajes enviados a la API para evitar exceder tokens
+
 def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
     keys = get_api_keys()
     if not keys:
@@ -452,11 +455,13 @@ def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
         try:
             client = genai.Client(api_key=key)
 
+            # Recortar historial para no exceder el límite de tokens de la API
+            messages_api = messages[-MAX_MENSAJES_API:] if len(messages) > MAX_MENSAJES_API else messages
             historial_gemini = []
-            for i, msg in enumerate(messages):
+            for i, msg in enumerate(messages_api):
                 rol = "user" if msg["role"] == "user" else "model"
 
-                if i == len(messages) - 1 and imagen_adjunta and rol == "user":
+                if i == len(messages_api) - 1 and imagen_adjunta and rol == "user":
                     # ── IMAGEN: conversión correcta a bytes ──
                     img = Image.open(imagen_adjunta)
                     if img.mode in ("RGBA", "P"):
@@ -758,6 +763,17 @@ elif st.session_state.vista == "chat":
     alumno_id = manejador.id_alumno(nombre, grado)
     puntos    = perfil.get("puntos_sabiduria", 0)
 
+    def _cerrar_sesion_alumno():
+        """Guarda el perfil y resetea el estado de sesión del alumno."""
+        manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
+        get_perfiles_cached.clear()
+        st.session_state.vista = "inicio"
+        st.session_state.perfil_activo = None
+        st.session_state.messages = []
+        st.session_state.reporte_generado = None
+        st.session_state.mensaje_counter = 0
+        st.rerun()
+
     # ── SIDEBAR ──
     with st.sidebar:
         st.markdown(f"""
@@ -887,14 +903,7 @@ elif st.session_state.vista == "chat":
 
         st.markdown("---")
         if st.button("🚪 Cerrar sesión", key="logout_sidebar", use_container_width=True):
-            manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
-            get_perfiles_cached.clear()
-            st.session_state.vista = "inicio"
-            st.session_state.perfil_activo = None
-            st.session_state.messages = []
-            st.session_state.reporte_generado = None
-            st.session_state.mensaje_counter = 0
-            st.rerun()
+            _cerrar_sesion_alumno()
 
     # ── HEADER PRINCIPAL ──
     col_t, col_b = st.columns([3, 1])
@@ -904,14 +913,7 @@ elif st.session_state.vista == "chat":
     with col_b:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚪 Cerrar sesión", key="logout_top", use_container_width=True):
-            manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
-            get_perfiles_cached.clear()
-            st.session_state.vista = "inicio"
-            st.session_state.perfil_activo = None
-            st.session_state.messages = []
-            st.session_state.reporte_generado = None
-            st.session_state.mensaje_counter = 0
-            st.rerun()
+            _cerrar_sesion_alumno()
 
     st.markdown("---")
 
@@ -1040,7 +1042,7 @@ Esta es tu sesión **#{sesion_num}** conmigo. Llevas **{puntos} puntos de sabidu
         st.session_state.es_primera_vez = False
         manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
         st.session_state.perfil_activo = perfil
-        st.rerun()
+        st.rerun()  # Solo se ejecuta cuando se acaba de generar el mensaje de bienvenida
 
     # ── INPUT CON IMAGEN ──
     if keys_disponibles:
@@ -1116,10 +1118,9 @@ INFORMACION DEL ALUMNO:
                     else:
                         st.markdown(texto)
                         st.session_state.messages.append({"role": "assistant", "content": texto})
-                        # Guardar cada 5 mensajes
-                        if st.session_state.mensaje_counter % 5 == 0:
-                            manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
-                            st.session_state.perfil_activo = perfil
+                        # Guardar en cada respuesta para no perder datos si el usuario cierra el navegador
+                        manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
+                        st.session_state.perfil_activo = perfil
             # BUG FIX: limpiar imagen después de enviar para no reutilizarla
             st.session_state.ultima_imagen = None
             st.rerun()
@@ -1150,7 +1151,7 @@ elif st.session_state.vista == "maestro_login":
         if submitted:
             try:
                 password_correcta = st.secrets["TEACHER_PASSWORD"]
-            except:
+            except Exception:
                 password_correcta = "moni2025"
 
             if password == password_correcta:
@@ -1224,6 +1225,7 @@ elif st.session_state.vista == "dashboard":
         </div>
         """, unsafe_allow_html=True)
     else:
+        # Métricas calculadas sobre la lista ya filtrada (no sobre perfiles_todos)
         total_alumnos  = len(perfiles)
         total_sesiones = sum(p.get("total_sesiones", 0) for p in perfiles)
         total_msgs     = sum(p.get("mensajes_totales", 0) for p in perfiles)
