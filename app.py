@@ -522,6 +522,8 @@ Habla de tu directamente. Tono calido y honesto. Contexto mexicano.
 def get_perfiles_cached():
     return manejador.listar_perfiles()
 
+
+
 # ═══════════════════════════════════════════════
 #  ESTADO INICIAL
 # ═══════════════════════════════════════════════
@@ -986,40 +988,97 @@ elif st.session_state.vista == "dashboard":
         # ── BOTÓN DEMO ──────────────────────────────
         st.markdown("**🧪 Modo demo**")
         if st.button("👥 Crear alumnos de demo", use_container_width=True):
-            try:
-                with open("demo_data.json", "r", encoding="utf-8") as df:
-                    demos = json.load(df)
-                os.makedirs("perfiles", exist_ok=True)
-                creados = 0
-                for d in demos:
-                    n = d["nombre"].lower().replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u').replace('ñ','n').replace(' ','')
-                    g = d["grado"].lower().replace(' ','').replace('°','').replace('º','')
-                    alumno_id_demo = f"{n[:20]}_{g[:10]}"
-                    pin_hash_val   = hashlib.sha256(d["pin"].encode()).hexdigest()
-                    primera = (datetime.now() - timedelta(days=d["dias"])).strftime("%Y-%m-%d")
-                    ultima  = (datetime.now() - timedelta(days=d["dias"]//2)).strftime("%Y-%m-%d %H:%M")
-                    perfil_demo = {
-                        "nombre": d["nombre"], "grado": d["grado"],
-                        "pin_hash": pin_hash_val,
-                        "primera_sesion": primera, "ultima_sesion": ultima,
-                        "total_sesiones": d["sesiones"], "mensajes_totales": d["mensajes"],
-                        "modos": {"nivelacion": d["niv"], "profundizacion": d["prof"], "vocacional": d["voc"]},
-                        "puntos_sabiduria": d["puntos"],
-                        "fortalezas": [], "debilidades": d["deb"], "intereses": d["int"],
-                        "notas_maestro": "", "ultimo_reporte": "",
-                        "ultimo_indice_contado": len(d["historial"]),
-                        "historial": d["historial"]
-                    }
-                    ruta_demo = os.path.join("perfiles", f"{alumno_id_demo}.json")
-                    with open(ruta_demo, "w", encoding="utf-8") as pf:
-                        json.dump(perfil_demo, pf, ensure_ascii=False, indent=2)
-                    creados += 1
-                get_perfiles_cached.clear()
-                st.success(f"✅ {creados} alumnos de demo creados.")
-                st.info("PINs → Valeria:1234 | Carlos:5678 | Ana:9012 | Diego:3456 | Sofía:7890")
-                st.rerun()
-            except FileNotFoundError:
-                st.error("❌ No se encontró demo_data.json. Súbelo a tu repo de GitHub.")
+            import hashlib as _hl
+            from datetime import timedelta as _td
+            _hist = {
+                "valeria": [
+                    {"role":"user","content":"Moni, no entiendo las ecuaciones cuadráticas"},
+                    {"role":"assistant","content":"📚 Modo nivelación activado ✨\n\nValeria, qué parte se te complica más? Despejar la x o usar la fórmula general?"},
+                    {"role":"user","content":"no sé cuándo usar la fórmula general"},
+                    {"role":"assistant","content":"📚 Modo nivelación activado ✨\n\nImagínate en el tianguis con 12 mangos para repartir en grupos iguales, qué harías primero? 🥭"},
+                    {"role":"user","content":"me encanta la biología, quiero saber más sobre las células"},
+                    {"role":"assistant","content":"🚀 Modo profundización activado ✨\n\n🏆 Reto de sabiduría: Por qué las células vegetales tienen pared celular y las animales no?"},
+                    {"role":"user","content":"porque las plantas necesitan soporte estructural ya que no tienen esqueleto"},
+                    {"role":"assistant","content":"🌟 ¡Ganaste puntos de sabiduría! Exacto Valeria! Las plantas necesitan rigidez para mantenerse erguidas 🌱"},
+                    {"role":"user","content":"qué carrera me recomiendas si me gusta la biología?"},
+                    {"role":"assistant","content":"🌟 Orientación vocacional ✨\n\n1. Biología - UJAT Villahermosa\n2. Medicina\n3. Bioquímica"},
+                ],
+                "carlos": [
+                    {"role":"user","content":"cómo funciona la gravedad según Einstein?"},
+                    {"role":"assistant","content":"🚀 Modo profundización activado ✨\n\nImagínate una sábana estirada con una bola de boliche 🌌\n\n🏆 Reto de sabiduría: Por qué la luz se dobla si los fotones no tienen masa?"},
+                    {"role":"user","content":"porque la luz sigue las geodésicas del espacio curvo"},
+                    {"role":"assistant","content":"🌟 ¡Ganaste puntos de sabiduría! Carlos, razonamiento de nivel universitario 🧠"},
+                    {"role":"user","content":"quiero entender las leyes de Newton"},
+                    {"role":"assistant","content":"🚀 Modo profundización activado ✨\n\nComo un balón de fútbol tabasqueño ⚽\n\n🏆 Reto: Qué pasaría con el balón sin fricción?"},
+                    {"role":"user","content":"seguiría moviéndose para siempre en línea recta, primera ley de Newton"},
+                    {"role":"assistant","content":"🌟 ¡Ganaste puntos de sabiduría! La inercia en acción 🚀"},
+                    {"role":"user","content":"quiero ser ingeniero"},
+                    {"role":"assistant","content":"🌟 Orientación vocacional ✨\n\n1. Ingeniería Civil - UJAT\n2. Ingeniería en Sistemas - Tec Villahermosa\n3. Física aplicada - UNAM"},
+                ],
+                "ana": [
+                    {"role":"user","content":"odio la química, no entiendo nada de la tabla periódica"},
+                    {"role":"assistant","content":"📚 Modo nivelación activado ✨\n\nAna, entiendo esa frustración 💙 Qué es lo que más te confunde: los números, los grupos o los nombres?"},
+                    {"role":"user","content":"todo, no sé por qué están acomodados así"},
+                    {"role":"assistant","content":"📚 Modo nivelación activado ✨\n\nImagínate que organizas tu closet... por color o por tipo? Qué crees que usó Mendeléyev? 😊"},
+                    {"role":"user","content":"por el peso o el tamaño?"},
+                    {"role":"assistant","content":"📚 Modo nivelación activado ✨\n\nMuy bien Ana! El peso atómico fue la primera idea. Hoy usamos el número atómico 🎉"},
+                    {"role":"user","content":"qué carrera puedo estudiar si me gusta escribir?"},
+                    {"role":"assistant","content":"🌟 Orientación vocacional ✨\n\n1. Periodismo - UJAT\n2. Literatura\n3. Comunicación 📝"},
+                ],
+                "diego": [
+                    {"role":"user","content":"por qué la Revolución Mexicana no resolvió todos los problemas?"},
+                    {"role":"assistant","content":"🚀 Modo profundización activado ✨\n\nLas haciendas cacaoteras en Tabasco son un ejemplo perfecto 🇲🇽\n\n🏆 Reto: Cuál fue la razón principal de que las reformas fueran incompletas?"},
+                    {"role":"user","content":"los caudillos reprodujeron las mismas estructuras de poder que criticaban"},
+                    {"role":"assistant","content":"🌟 ¡Ganaste puntos de sabiduría! Análisis de nivel universitario Diego 📚"},
+                    {"role":"user","content":"qué similitudes hay entre el Porfiriato y hoy?"},
+                    {"role":"assistant","content":"🚀 Modo profundización activado ✨\n\n🏆 Reto: Qué similitudes encuentras en concentración del poder económico?"},
+                    {"role":"user","content":"la desigualdad económica y la concentración del poder siguen siendo los temas centrales"},
+                    {"role":"assistant","content":"🌟 ¡Ganaste puntos de sabiduría! Esa continuidad histórica es lo que estudia la ciencia política 🎯"},
+                    {"role":"user","content":"quiero estudiar derecho"},
+                    {"role":"assistant","content":"🌟 Orientación vocacional ✨\n\n1. Derecho - UJAT\n2. Ciencias Políticas - UNAM\n3. Periodismo político ⚖️"},
+                ],
+                "sofia": [
+                    {"role":"user","content":"quiero ser médica pero no sé si soy suficientemente inteligente"},
+                    {"role":"assistant","content":"🌟 Orientación vocacional ✨\n\nSofía, la inteligencia no es un límite fijo 💙 Qué es lo que más te atrae de ser médica?"},
+                    {"role":"user","content":"me encanta la biología celular"},
+                    {"role":"assistant","content":"🚀 Modo profundización activado ✨\n\n🏆 Reto: Por qué las células cancerosas se vuelven inmortales?"},
+                    {"role":"user","content":"porque pierden el mecanismo de apoptosis, el suicidio celular programado"},
+                    {"role":"assistant","content":"🌟 ¡Ganaste puntos de sabiduría! Eso es conocimiento de primer semestre de medicina 🩺✨"},
+                    {"role":"user","content":"en qué universidad estudiaría medicina en Tabasco?"},
+                    {"role":"assistant","content":"🌟 Orientación vocacional ✨\n\n1. UJAT - Facultad de Medicina en Villahermosa\n2. Universidad Olmeca\n3. UNAM 💪"},
+                ],
+            }
+            _demos = [
+                ("Valeria López","3° Semestre Prepa","1234",12,87,140,18,31,8,45,["matematicas"],["biologia","quimica"],_hist["valeria"]),
+                ("Carlos Méndez","5° Semestre Prepa","5678",18,134,230,12,52,15,60,["español"],["fisica","matematicas"],_hist["carlos"]),
+                ("Ana García","2° Secundaria","9012",5,32,20,14,3,4,20,["quimica","matematicas"],["español"],_hist["ana"]),
+                ("Diego Hernández","6° Semestre Prepa","3456",24,198,310,8,45,32,90,["matematicas"],["historia","español"],_hist["diego"]),
+                ("Sofía Ramírez","1° Semestre Prepa","7890",4,28,50,6,12,5,15,["fisica"],["biologia","quimica"],_hist["sofia"]),
+            ]
+            os.makedirs(PERFILES_DIR, exist_ok=True)
+            _creados = 0
+            for _nm,_gr,_pn,_se,_ms,_pts,_nv,_pf,_vc,_di,_db,_it,_hs in _demos:
+                _n = _nm.lower().replace("á","a").replace("é","e").replace("í","i").replace("ó","o").replace("ú","u").replace("ñ","n").replace(" ","")
+                _g = _gr.lower().replace(" ","").replace("°","").replace("º","")
+                _aid = f"{_n[:20]}_{_g[:10]}"
+                _ph  = _hl.sha256(_pn.encode()).hexdigest()
+                _pd  = {
+                    "nombre":_nm,"grado":_gr,"pin_hash":_ph,
+                    "primera_sesion":(datetime.now()-_td(days=_di)).strftime("%Y-%m-%d"),
+                    "ultima_sesion":(datetime.now()-_td(days=_di//2)).strftime("%Y-%m-%d %H:%M"),
+                    "total_sesiones":_se,"mensajes_totales":_ms,
+                    "modos":{"nivelacion":_nv,"profundizacion":_pf,"vocacional":_vc},
+                    "puntos_sabiduria":_pts,"fortalezas":[],"debilidades":_db,"intereses":_it,
+                    "notas_maestro":"","ultimo_reporte":"",
+                    "ultimo_indice_contado":len(_hs),"historial":_hs
+                }
+                with open(os.path.join(PERFILES_DIR,f"{_aid}.json"),"w",encoding="utf-8") as _pf2:
+                    json.dump(_pd,_pf2,ensure_ascii=False,indent=2)
+                _creados += 1
+            get_perfiles_cached.clear()
+            st.success(f"✅ {_creados} alumnos de demo creados con conversaciones completas.")
+            st.info("PINs → Valeria:1234 | Carlos:5678 | Ana:9012 | Diego:3456 | Sofía:7890")
+            st.rerun()
 
         st.markdown("---")
         st.markdown("**🔍 Filtros**")
