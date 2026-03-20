@@ -6,7 +6,7 @@ import os
 import re
 import hashlib
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from PIL import Image
 import io
 
@@ -91,7 +91,7 @@ section[data-testid="stMain"] p { color: #1e293b !important; }
 """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════
-#  PROMPT DE MONI — con Socrático + Contexto Mexicano
+#  PROMPT DE MONI
 # ═══════════════════════════════════════════════
 INSTRUCCIONES_MONI = """
 Eres Moni, una mentora educativa IA muy amable, paciente y motivadora. Acompañas a estudiantes mexicanos de secundaria y preparatoria (12-18 años). Tu objetivo es que cada alumno aprenda mejor y, al terminar la prepa, pueda elegir su carrera con evidencia real.
@@ -106,46 +106,46 @@ CONTEXTO MEXICANO — MUY IMPORTANTE
 Siempre que puedas, usa ejemplos de la vida cotidiana mexicana para explicar conceptos:
 - Matematicas: "Imaginate que vas al tianguis y tienes que calcular el cambio de 200 pesos..."
 - Historia: "Como cuando los Aztecas usaban el sistema vigesimal para contar..."
-- Fisica: "Como la trajectoria de un balón en un partido de futbol..."
-- Quimica: "Como cuando el molcajete tritura especias y cambia su forma física..."
+- Fisica: "Como la trayectoria de un balon en un partido de futbol..."
+- Quimica: "Como cuando el molcajete tritura especias y cambia su forma fisica..."
 - Biologia: "Como los nopales del desierto que guardan agua para sobrevivir..."
-- Economia: "Como cuando suben los precios en el mercado después de las lluvias..."
-Adapta los ejemplos al contexto cultural mexicano. Esto hace que el aprendizaje sea más relevante y cercano.
+- Tabasco: Menciona el rio Grijalva, el cacao, el chocolate, la selva lacandona cuando sea relevante.
+Adapta los ejemplos al contexto cultural mexicano. Esto hace que el aprendizaje sea mas relevante y cercano.
 
 MODOS DE OPERACION (detectalos automaticamente)
 
-MODO NIVELACION — activado cuando el alumno pregunta sobre una materia difícil o muestra confusión:
+MODO NIVELACION — activado cuando el alumno pregunta sobre una materia dificil o muestra confusion:
 - Escribe exactamente al inicio: "📚 Modo nivelación activado ✨"
-- Usa la TECNICA SOCRATICA: en lugar de explicar directamente, responde con preguntas que obliguen al alumno a pensar con lo que ya sabe. Ejemplos:
-  * "¿Qué crees que pasaría si...?"
-  * "¿Ya viste algo parecido en tu vida diaria?"
-  * "¿Si tuvieras que explicárselo a un amigo, por donde empezarías?"
-  * "¿Qué parte del problema ya entiendes?"
-- Divide el problema en pasos pequeños mediante preguntas guía.
-- NUNCA des la respuesta directa. Guía con preguntas y ejemplos del contexto mexicano.
+- Usa la TECNICA SOCRATICA: en lugar de explicar directamente, responde con preguntas que obliguen al alumno a pensar con lo que ya sabe:
+  * "Que crees que pasaria si...?"
+  * "Ya viste algo parecido en tu vida diaria?"
+  * "Si tuvieras que explicarselo a un amigo, por donde empezarias?"
+  * "Que parte del problema ya entiendes?"
+- Divide el problema en pasos pequenos mediante preguntas guia.
+- NUNCA des la respuesta directa. Guia con preguntas y ejemplos del contexto mexicano.
 - Celebra cada avance con mucho entusiasmo.
-- Si tras 2 intentos con preguntas el alumno sigue sin entender, cambia completamente tu estrategia de preguntas.
+- Si tras 2 intentos el alumno sigue sin entender, cambia completamente tu estrategia de preguntas.
 
 MODO PROFUNDIZACION — activado cuando el alumno pregunta sobre algo que le apasiona:
 - Escribe exactamente al inicio: "🚀 Modo profundización activado ✨"
 - Ofrece datos curiosos, conexiones con el mundo real y retos adicionales.
-- Al final de cada respuesta de profundización, incluye UN RETO: "🏆 Reto de sabiduría: [pregunta desafiante relacionada con el tema]"
-- Si el alumno resuelve el reto correctamente, felicítalo con: "🌟 ¡Ganaste puntos de sabiduría! ¡Excelente razonamiento!"
-- Conecta siempre con aplicaciones profesionales reales en México.
+- Al final incluye UN RETO: "🏆 Reto de sabiduría: [pregunta desafiante]"
+- Si el alumno resuelve el reto correctamente: "🌟 ¡Ganaste puntos de sabiduría! ¡Excelente razonamiento!"
+- Conecta siempre con aplicaciones profesionales reales en Mexico.
 
 MODO VOCACIONAL — activado cuando el alumno pregunta sobre carreras o su futuro:
 - Escribe exactamente al inicio: "🌟 Orientación vocacional ✨"
-- Conecta sus fortalezas observadas con carreras concretas disponibles en México.
-- Da 2-3 opciones con descripción del día a día y universidades donde se puede estudiar en México.
+- Conecta sus fortalezas observadas con carreras concretas en Mexico.
+- Da 2-3 opciones con descripcion del dia a dia y universidades mexicanas.
 - Menciona el mercado laboral mexicano actual para esa carrera.
 
 REGLAS DE ORO
 - Personaliza SIEMPRE con el nombre del alumno.
-- Usa emojis estratégicamente para hacer el aprendizaje divertido.
-- Si el alumno está frustrado, primero valida su emoción, luego guía con preguntas.
-- NUNCA des la solución directa a tareas o ejercicios.
+- Usa emojis estrategicamente para hacer el aprendizaje divertido.
+- Si el alumno esta frustrado, primero valida su emocion, luego guia con preguntas.
+- NUNCA des la solucion directa a tareas o ejercicios.
 - NUNCA uses lenguaje condescendiente.
-- Usa el tuteo y lenguaje natural mexicano (está bien decir "órale", "chido", "sale").
+- Usa el tuteo y lenguaje natural mexicano (esta bien decir "orale", "chido", "sale").
 """
 
 # ═══════════════════════════════════════════════
@@ -226,48 +226,25 @@ def extraer_materias_de_mensaje(texto):
                 break
     return list(materias_detectadas)
 
-# ═══════════════════════════════════════════════
-#  ACTUALIZAR PERFIL DINÁMICO (debilidades + intereses)
-# ═══════════════════════════════════════════════
 def actualizar_perfil_dinamico(perfil, mensaje_usuario):
-    """
-    Detecta materias en el mensaje y actualiza debilidades o intereses
-    según el sentimiento del alumno en tiempo real.
-    """
     materias = extraer_materias_de_mensaje(mensaje_usuario)
     if not materias:
         return perfil
-
     sentimiento = analizar_sentimiento(mensaje_usuario)
     msg_lower   = mensaje_usuario.lower()
-
     for materia in materias:
-        # Si muestra frustración → debilidad
         if sentimiento == "frustrado":
             if materia not in perfil.get("debilidades", []):
                 perfil.setdefault("debilidades", []).append(materia)
-
-        # Si muestra gusto o interés → interés
         if any(p in msg_lower for p in ["amo", "me gusta", "me encanta", "me apasiona", "es chido", "me llama"]):
             if materia not in perfil.get("intereses", []):
                 perfil.setdefault("intereses", []).append(materia)
-            # Si también estaba en debilidades y ahora le gusta, la removemos
             if materia in perfil.get("debilidades", []):
                 perfil["debilidades"].remove(materia)
-
     return perfil
 
-# ═══════════════════════════════════════════════
-#  GAMIFICACIÓN — detectar si ganó puntos
-# ═══════════════════════════════════════════════
 def detectar_puntos_ganados(respuesta_moni):
-    """Detecta si Moni le dio puntos al alumno en su respuesta."""
-    indicadores = [
-        "ganaste puntos de sabiduría",
-        "puntos de sabiduría",
-        "¡ganaste puntos",
-        "ganaste puntos"
-    ]
+    indicadores = ["ganaste puntos de sabiduría", "puntos de sabiduría", "¡ganaste puntos", "ganaste puntos"]
     respuesta_lower = respuesta_moni.lower()
     return any(ind in respuesta_lower for ind in indicadores)
 
@@ -319,7 +296,7 @@ class ManejadorPerfiles:
             "notas_maestro": "",
             "ultimo_indice_contado": 0,
             "ultimo_reporte": "",
-            "puntos_sabiduria": 0,      # ← GAMIFICACIÓN
+            "puntos_sabiduria": 0,
             "historial": []
         }
 
@@ -345,7 +322,6 @@ class ManejadorPerfiles:
                         perfil["modos"]["profundizacion"] += 1
                     elif "orientación vocacional" in contenido or "orientacion vocacional" in contenido:
                         perfil["modos"]["vocacional"] += 1
-                    # Sumar puntos solo la primera vez que aparezcan en la sesión
                     if not puntos_sumados and detectar_puntos_ganados(msg["content"]):
                         perfil["puntos_sabiduria"] = perfil.get("puntos_sabiduria", 0) + 10
                         puntos_sumados = True
@@ -393,34 +369,18 @@ def detectar_modo(messages):
             if "orientación vocacional" in txt or "orientacion vocacional" in txt:
                 return "vocacional"
             break
-
     user_msgs = [m["content"].lower() for m in messages if m["role"] == "user"][-3:]
     texto_combinado = " ".join(user_msgs)
-
     keywords = {
-        "nivelacion": [
-            "no entiendo", "me cuesta", "difícil", "dificil", "ayuda", "explica",
-            "como se hace", "no le entiendo", "no comprendo", "me pierdo", "no se",
-            "tarea", "ejercicio", "examen", "reprobé", "no puedo", "estoy perdido"
-        ],
-        "profundizacion": [
-            "quiero saber más", "curiosidad", "profundizar", "mas alla", "investigar",
-            "me apasiona", "me encanta", "dato curioso", "como funciona",
-            "origen de", "historia de", "quiero aprender mas", "es interesante"
-        ],
-        "vocacional": [
-            "carrera", "universidad", "trabajo", "futuro", "profesion", "que estudiar",
-            "que ser", "quiero ser", "me gustaria ser", "no se que estudiar",
-            "facultad", "titulo", "empleo", "salida laboral", "vocacion"
-        ]
+        "nivelacion": ["no entiendo","me cuesta","difícil","dificil","ayuda","explica","como se hace","no le entiendo","no comprendo","me pierdo","no se","tarea","ejercicio","examen","reprobé","no puedo","estoy perdido"],
+        "profundizacion": ["quiero saber más","curiosidad","profundizar","mas alla","investigar","me apasiona","me encanta","dato curioso","como funciona","origen de","historia de","quiero aprender mas","es interesante"],
+        "vocacional": ["carrera","universidad","trabajo","futuro","profesion","que estudiar","que ser","quiero ser","me gustaria ser","no se que estudiar","facultad","titulo","empleo","salida laboral","vocacion"]
     }
-
     puntuacion = {modo: 0 for modo in keywords}
     for modo, palabras in keywords.items():
         for palabra in palabras:
             if palabra in texto_combinado:
                 puntuacion[modo] += 1
-
     mejor_modo = max(puntuacion, key=puntuacion.get)
     return mejor_modo if puntuacion[mejor_modo] >= 2 else "general"
 
@@ -442,65 +402,38 @@ def get_api_keys():
     return keys
 
 # ═══════════════════════════════════════════════
-#  LLAMAR A GEMINI — imagen corregida + temperature
+#  LLAMAR A GEMINI
 # ═══════════════════════════════════════════════
-MAX_MENSAJES_API = 20  # Límite de mensajes enviados a la API para evitar exceder tokens
+MAX_MENSAJES_API = 20
 
 def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
     keys = get_api_keys()
     if not keys:
         return None, "❌ No hay API keys configuradas en Secrets."
-
     for key in keys:
         try:
             client = genai.Client(api_key=key)
-
-            # Recortar historial para no exceder el límite de tokens de la API
             messages_api = messages[-MAX_MENSAJES_API:] if len(messages) > MAX_MENSAJES_API else messages
             historial_gemini = []
             for i, msg in enumerate(messages_api):
                 rol = "user" if msg["role"] == "user" else "model"
-
                 if i == len(messages_api) - 1 and imagen_adjunta and rol == "user":
-                    # ── IMAGEN: conversión correcta a bytes ──
                     img = Image.open(imagen_adjunta)
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
                     img_bytes = io.BytesIO()
                     img.save(img_bytes, format="JPEG")
                     img_bytes.seek(0)
-
-                    imagen_part = types.Part.from_bytes(
-                        data=img_bytes.getvalue(),
-                        mime_type="image/jpeg"
-                    )
-                    historial_gemini.append(
-                        types.Content(
-                            role=rol,
-                            parts=[
-                                types.Part.from_text(text=msg["content"]),
-                                imagen_part
-                            ]
-                        )
-                    )
+                    imagen_part = types.Part.from_bytes(data=img_bytes.getvalue(), mime_type="image/jpeg")
+                    historial_gemini.append(types.Content(role=rol, parts=[types.Part.from_text(text=msg["content"]), imagen_part]))
                 else:
-                    historial_gemini.append(
-                        types.Content(
-                            role=rol,
-                            parts=[types.Part.from_text(text=msg["content"])]
-                        )
-                    )
-
+                    historial_gemini.append(types.Content(role=rol, parts=[types.Part.from_text(text=msg["content"])]))
             respuesta = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=historial_gemini,
-                config=types.GenerateContentConfig(
-                    system_instruction=instrucciones,
-                    temperature=0.7   # Creatividad controlada
-                )
+                config=types.GenerateContentConfig(system_instruction=instrucciones, temperature=0.7)
             )
             return respuesta.text, None
-
         except Exception as e:
             error = str(e).lower()
             if "quota" in error or "rate" in error or "429" in error:
@@ -509,7 +442,6 @@ def llamar_gemini(messages, instrucciones, imagen_adjunta=None):
                 return None, "❌ API key inválida."
             else:
                 return None, f"❌ Error inesperado: {str(e)}"
-
     return None, "⏳ Todas las keys alcanzaron su límite. Intenta más tarde."
 
 # ═══════════════════════════════════════════════
@@ -519,78 +451,60 @@ def generar_reporte_vocacional(perfil, messages):
     keys = get_api_keys()
     if not keys:
         return None, "❌ No hay API keys configuradas."
-
-    resumen_conversaciones = ""
-    for msg in messages:
-        if msg["role"] == "user":
-            resumen_conversaciones += f"- Alumno: {msg['content'][:150]}\n"
-
-    modos   = perfil.get("modos", {})
-    puntos  = perfil.get("puntos_sabiduria", 0)
-    intereses   = ', '.join(perfil.get('intereses', [])) or 'No registrados'
-    debilidades = ', '.join(perfil.get('debilidades', [])) or 'No registradas'
-
-    prompt_reporte = f"""
-Eres un orientador vocacional experto en el sistema educativo mexicano. Analiza el siguiente
-perfil de un estudiante y genera un reporte vocacional personalizado, cálido y motivador.
+    resumen = "".join(f"- Alumno: {m['content'][:150]}\n" for m in messages if m["role"] == "user")
+    modos = perfil.get("modos", {})
+    puntos = perfil.get("puntos_sabiduria", 0)
+    prompt = f"""
+Eres un orientador vocacional experto en el sistema educativo mexicano.
 
 DATOS DEL ALUMNO:
 - Nombre: {perfil.get('nombre')}
-- Grado actual: {perfil.get('grado')}
-- Primera sesión con Moni: {perfil.get('primera_sesion')}
-- Total de sesiones: {perfil.get('total_sesiones')}
-- Mensajes enviados: {perfil.get('mensajes_totales')}
-- Puntos de sabiduría ganados: {puntos}
-- Veces en modo nivelación: {modos.get('nivelacion', 0)}
-- Veces en modo profundización: {modos.get('profundizacion', 0)}
-- Veces en orientación vocacional: {modos.get('vocacional', 0)}
-- Materias de interés detectadas: {intereses}
-- Materias de mejora detectadas: {debilidades}
+- Grado: {perfil.get('grado')}
+- Primera sesion: {perfil.get('primera_sesion')}
+- Total sesiones: {perfil.get('total_sesiones')}
+- Mensajes: {perfil.get('mensajes_totales')}
+- Puntos de sabiduria: {puntos}
+- Modo nivelacion: {modos.get('nivelacion', 0)} veces
+- Modo profundizacion: {modos.get('profundizacion', 0)} veces
+- Modo vocacional: {modos.get('vocacional', 0)} veces
+- Intereses: {', '.join(perfil.get('intereses', [])) or 'No registrados'}
+- Areas de mejora: {', '.join(perfil.get('debilidades', [])) or 'No registradas'}
 
-MUESTRA DE SUS CONVERSACIONES CON MONI:
-{resumen_conversaciones[:2000]}
+CONVERSACIONES:
+{resumen[:2000]}
 
-Genera un reporte con EXACTAMENTE estas secciones:
+Genera reporte con estas secciones exactas:
 
 🌟 REPORTE VOCACIONAL DE {perfil.get('nombre', '').upper()}
 {'='*40}
 
 📚 TU PERFIL COMO APRENDIZ
-[2-3 oraciones describiendo cómo aprende este alumno basándote en sus datos reales]
+[2-3 oraciones sobre como aprende este alumno]
 
 ⭐ TUS PUNTOS DE SABIDURÍA: {puntos} puntos
-[1 oración motivadora sobre lo que significan sus puntos]
+[1 oracion motivadora sobre sus puntos]
 
 💪 TUS FORTALEZAS DETECTADAS
-[Lista de 3-4 fortalezas específicas observadas]
+[3-4 fortalezas especificas]
 
 🌱 TUS ÁREAS DE CRECIMIENTO
-[Lista de 2-3 áreas donde ha mostrado esfuerzo y superación]
+[2-3 areas de esfuerzo y superacion]
 
-🎯 CARRERAS QUE VAN CONTIGO (en México)
-[3 carreras recomendadas, cada una con: nombre, por qué encaja con su perfil,
- materias clave y universidades mexicanas donde estudiarla]
+🎯 CARRERAS QUE VAN CONTIGO (en Mexico)
+[3 carreras con: por que encaja, materias clave, universidades mexicanas]
 
 ✨ MENSAJE PARA TU FUTURO
-[Párrafo motivacional personalizado de 3-4 oraciones, en español mexicano natural]
+[Parrafo motivacional en espanol mexicano natural]
 
-Habla directamente al alumno de tú. Tono cálido, motivador y honesto.
-Usa referencias al contexto mexicano donde sea relevante.
+Habla de tu directamente. Tono calido y honesto. Contexto mexicano.
 """
-
     for key in keys:
         try:
             client = genai.Client(api_key=key)
             respuesta = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=[types.Content(
-                    role="user",
-                    parts=[types.Part.from_text(text=prompt_reporte)]
-                )],
-                config=types.GenerateContentConfig(
-                    system_instruction="Eres un orientador vocacional experto en el sistema educativo mexicano.",
-                    temperature=0.7
-                )
+                contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                config=types.GenerateContentConfig(system_instruction="Eres orientador vocacional experto en educacion mexicana.", temperature=0.7)
             )
             return respuesta.text, None
         except Exception as e:
@@ -599,7 +513,6 @@ Usa referencias al contexto mexicano donde sea relevante.
                 continue
             else:
                 return None, f"❌ Error: {str(e)}"
-
     return None, "⏳ Todas las keys alcanzaron su límite."
 
 # ═══════════════════════════════════════════════
@@ -644,24 +557,12 @@ if st.session_state.vista == "inicio":
     with col2:
         col_a, col_b = st.columns(2)
         with col_a:
-            st.markdown("""
-            <div class="role-card">
-                <div class="role-icon">🎒</div>
-                <div class="role-title">Soy alumno</div>
-                <div class="role-desc">Chatea con Moni y aprende</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div class="role-card"><div class="role-icon">🎒</div><div class="role-title">Soy alumno</div><div class="role-desc">Chatea con Moni y aprende</div></div>""", unsafe_allow_html=True)
             if st.button("Entrar como alumno", key="btn_alumno", use_container_width=True):
                 st.session_state.vista = "alumno_login"
                 st.rerun()
         with col_b:
-            st.markdown("""
-            <div class="role-card">
-                <div class="role-icon">👨‍🏫</div>
-                <div class="role-title">Soy maestro</div>
-                <div class="role-desc">Ver panel de seguimiento</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div class="role-card"><div class="role-icon">👨‍🏫</div><div class="role-title">Soy maestro</div><div class="role-desc">Ver panel de seguimiento</div></div>""", unsafe_allow_html=True)
             if st.button("Entrar como maestro", key="btn_maestro", use_container_width=True):
                 st.session_state.vista = "maestro_login"
                 st.rerun()
@@ -702,11 +603,7 @@ elif st.session_state.vista == "alumno_login":
                 "1° Semestre Prepa", "2° Semestre Prepa", "3° Semestre Prepa",
                 "4° Semestre Prepa", "5° Semestre Prepa", "6° Semestre Prepa"
             ])
-            pin = st.text_input(
-                "Tu PIN de 4 dígitos 🔐",
-                type="password", max_chars=4,
-                placeholder="Si es tu primera vez, elige uno nuevo"
-            )
+            pin = st.text_input("Tu PIN de 4 dígitos 🔐", type="password", max_chars=4, placeholder="Si es tu primera vez, elige uno nuevo")
             submitted = st.form_submit_button("¡Entrar con Moni! 🚀", use_container_width=True)
 
         if submitted:
@@ -720,19 +617,16 @@ elif st.session_state.vista == "alumno_login":
                 nombre_clean = nombre.strip().title()
                 alumno_id    = manejador.id_alumno(nombre_clean, grado)
                 perfil_exist = manejador.cargar_perfil(alumno_id)
-
                 if perfil_exist:
                     if manejador.verificar_pin(perfil_exist, pin.strip()):
                         perfil_exist["ultima_sesion"]  = datetime.now().strftime("%Y-%m-%d %H:%M")
                         perfil_exist["total_sesiones"] = perfil_exist.get("total_sesiones", 1) + 1
-                        # Asegurar campo de puntos en perfiles viejos
                         perfil_exist.setdefault("puntos_sabiduria", 0)
                         perfil_exist.setdefault("intereses", [])
                         perfil_exist.setdefault("debilidades", [])
                         st.session_state.perfil_activo  = perfil_exist
                         st.session_state.messages       = perfil_exist.get("historial", [])
                         st.session_state.es_primera_vez = False
-                        # BUG FIX: reiniciar contador para no acumular entre sesiones
                         st.session_state.mensaje_counter = 0
                         st.session_state.vista = "chat"
                         st.rerun()
@@ -764,7 +658,6 @@ elif st.session_state.vista == "chat":
     puntos    = perfil.get("puntos_sabiduria", 0)
 
     def _cerrar_sesion_alumno():
-        """Guarda el perfil y resetea el estado de sesión del alumno."""
         manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
         get_perfiles_cached.clear()
         st.session_state.vista = "inicio"
@@ -774,7 +667,6 @@ elif st.session_state.vista == "chat":
         st.session_state.mensaje_counter = 0
         st.rerun()
 
-    # ── SIDEBAR ──
     with st.sidebar:
         st.markdown(f"""
         <div style="text-align:center; padding:16px 0 8px;">
@@ -792,17 +684,10 @@ elif st.session_state.vista == "chat":
         st.markdown("**📊 Tu progreso**")
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown(f"""<div class="card-dark" style="text-align:center;">
-                <div style="font-size:1.4rem; font-weight:900;">{sesiones}</div>
-                <div style="font-size:0.65rem; color:#8b949e;">SESIONES</div>
-            </div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="card-dark" style="text-align:center;"><div style="font-size:1.4rem;font-weight:900;">{sesiones}</div><div style="font-size:0.65rem;color:#8b949e;">SESIONES</div></div>""", unsafe_allow_html=True)
         with c2:
-            st.markdown(f"""<div class="card-dark" style="text-align:center;">
-                <div style="font-size:1.4rem; font-weight:900;">{mensajes}</div>
-                <div style="font-size:0.65rem; color:#8b949e;">MENSAJES</div>
-            </div>""", unsafe_allow_html=True)
+            st.markdown(f"""<div class="card-dark" style="text-align:center;"><div style="font-size:1.4rem;font-weight:900;">{mensajes}</div><div style="font-size:0.65rem;color:#8b949e;">MENSAJES</div></div>""", unsafe_allow_html=True)
 
-        # Puntos de sabiduría
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(f'<span class="badge badge-pts">⭐ Puntos de sabiduría: {puntos}</span>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
@@ -813,13 +698,11 @@ elif st.session_state.vista == "chat":
         st.markdown(f'<span class="badge badge-voc">🌟 Vocacional: {modos.get("vocacional",0)}</span>', unsafe_allow_html=True)
         st.markdown("---")
 
-        # Intereses detectados
         if perfil.get("intereses"):
             st.markdown("**💚 Tus intereses:**")
             st.markdown(", ".join([f"`{i}`" for i in perfil["intereses"]]))
             st.markdown("<br>", unsafe_allow_html=True)
 
-        # Recursos personalizados por debilidades
         if perfil.get("debilidades"):
             st.markdown("**📚 Recursos para ti**")
             for materia in perfil["debilidades"]:
@@ -840,46 +723,22 @@ elif st.session_state.vista == "chat":
         st.markdown(badges_map.get(modo, ""), unsafe_allow_html=True)
         st.markdown("---")
 
-        perfil_export = json.dumps(
-            {k: v for k, v in perfil.items() if k != "pin_hash"},
-            ensure_ascii=False, indent=2
-        )
-        st.download_button(
-            "⬇️ Exportar mi perfil",
-            data=perfil_export,
-            file_name=f"perfil_{alumno_id}.json",
-            mime="application/json",
-            use_container_width=True
-        )
+        perfil_export = json.dumps({k: v for k, v in perfil.items() if k != "pin_hash"}, ensure_ascii=False, indent=2)
+        st.download_button("⬇️ Exportar mi perfil", data=perfil_export, file_name=f"perfil_{alumno_id}.json", mime="application/json", use_container_width=True)
 
         st.markdown("---")
         st.markdown("**📶 ¿Sin internet en casa?**")
-        texto_offline  = f"📚 Apuntes de Moni para {nombre}\n"
-        texto_offline += f"📅 Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-        texto_offline += f"⭐ Puntos de sabiduría: {puntos}\n" + "="*40 + "\n\n"
+        texto_offline  = f"📚 Apuntes de Moni para {nombre}\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n⭐ Puntos: {puntos}\n" + "="*40 + "\n\n"
         for msg in st.session_state.messages:
             rol_txt = "Tú" if msg["role"] == "user" else "🤖 Moni"
             contenido_limpio = msg["content"].replace("\n\n*[El alumno adjuntó una imagen de su tarea]*", " [Imagen enviada]")
             texto_offline += f"{rol_txt}:\n{contenido_limpio}\n\n" + "-"*40 + "\n\n"
-        st.download_button(
-            "💾 Descargar clase offline",
-            data=texto_offline,
-            file_name=f"Apuntes_Moni_{nombre.replace(' ', '_')}.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
+        st.download_button("💾 Descargar clase offline", data=texto_offline, file_name=f"Apuntes_Moni_{nombre.replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
 
         st.markdown("---")
         st.markdown("**🎓 Reporte vocacional**")
-        sesiones_actuales = perfil.get("total_sesiones", 1)
-        if sesiones_actuales < 3:
-            st.markdown(f"""
-            <div style="background:#fef9ef; border:1px solid #f59e0b; border-radius:10px;
-                        padding:10px; font-size:0.78rem; color:#92400e;">
-                💡 Completa al menos 3 sesiones para generar tu reporte.
-                Llevas <b>{sesiones_actuales}</b> sesión(es).
-            </div>
-            """, unsafe_allow_html=True)
+        if perfil.get("total_sesiones", 1) < 3:
+            st.markdown(f"""<div style="background:#fef9ef;border:1px solid #f59e0b;border-radius:10px;padding:10px;font-size:0.78rem;color:#92400e;">💡 Completa al menos 3 sesiones. Llevas <b>{perfil.get('total_sesiones',1)}</b>.</div>""", unsafe_allow_html=True)
         else:
             if st.button("📋 Generar mi reporte", key="btn_reporte", use_container_width=True):
                 with st.spinner("Analizando tu perfil... 🔍"):
@@ -891,21 +750,13 @@ elif st.session_state.vista == "chat":
                         perfil["ultimo_reporte"] = reporte
                         manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
                         get_perfiles_cached.clear()
-
             if st.session_state.get("reporte_generado"):
-                st.download_button(
-                    "⬇️ Descargar mi reporte",
-                    data=st.session_state.reporte_generado,
-                    file_name=f"Reporte_Vocacional_{nombre.replace(' ','_')}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
+                st.download_button("⬇️ Descargar mi reporte", data=st.session_state.reporte_generado, file_name=f"Reporte_Vocacional_{nombre.replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
 
         st.markdown("---")
         if st.button("🚪 Cerrar sesión", key="logout_sidebar", use_container_width=True):
             _cerrar_sesion_alumno()
 
-    # ── HEADER PRINCIPAL ──
     col_t, col_b = st.columns([3, 1])
     with col_t:
         st.markdown(f'<p class="titulo-moni">🤖 Hola, {nombre}!</p>', unsafe_allow_html=True)
@@ -917,7 +768,6 @@ elif st.session_state.vista == "chat":
 
     st.markdown("---")
 
-    # ── BARRA DE MODO + PUNTOS ──
     modo_actual = detectar_modo(st.session_state.messages)
     modos_info  = {
         "nivelacion":     ("📚", "Modo Nivelación Socrática", "#fef2f2", "#ef4444"),
@@ -928,14 +778,14 @@ elif st.session_state.vista == "chat":
     icono_m, label_m, bg_m, color_m = modos_info.get(modo_actual, modos_info["general"])
     modos_d = perfil.get("modos", {})
     st.markdown(f"""
-    <div style="display:flex; align-items:center; justify-content:space-between;
-                background:{bg_m}; border:1.5px solid {color_m}33;
-                border-radius:12px; padding:10px 18px; margin-bottom:12px;">
-        <div style="display:flex; align-items:center; gap:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                background:{bg_m};border:1.5px solid {color_m}33;
+                border-radius:12px;padding:10px 18px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
             <span style="font-size:1.2rem;">{icono_m}</span>
-            <span style="font-weight:800; color:{color_m}; font-size:0.9rem;">{label_m}</span>
+            <span style="font-weight:800;color:{color_m};font-size:0.9rem;">{label_m}</span>
         </div>
-        <div style="display:flex; gap:12px; font-size:0.78rem; color:#64748b;">
+        <div style="display:flex;gap:12px;font-size:0.78rem;color:#64748b;">
             <span>⭐ <b>{puntos} pts</b></span>
             <span>📚 <b>{modos_d.get('nivelacion',0)}</b></span>
             <span>🚀 <b>{modos_d.get('profundizacion',0)}</b></span>
@@ -945,22 +795,13 @@ elif st.session_state.vista == "chat":
     </div>
     """, unsafe_allow_html=True)
 
-    # ── BOTONES RÁPIDOS ──
     bc1, bc2, bc3 = st.columns(3)
     with bc1:
-        texto_rapido  = f"📚 Apuntes de Moni para {nombre}\n"
-        texto_rapido += f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-        texto_rapido += f"⭐ Puntos de sabiduría: {puntos}\n" + "="*40 + "\n\n"
+        texto_rapido = f"📚 Apuntes de Moni para {nombre}\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n⭐ Puntos: {puntos}\n" + "="*40 + "\n\n"
         for msg in st.session_state.messages:
             rol_txt = "Tú" if msg["role"] == "user" else "🤖 Moni"
             texto_rapido += f"{rol_txt}:\n{msg['content']}\n\n" + "-"*40 + "\n\n"
-        st.download_button(
-            "💾 Descargar clase",
-            data=texto_rapido,
-            file_name=f"Apuntes_{nombre.replace(' ','_')}.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
+        st.download_button("💾 Descargar clase", data=texto_rapido, file_name=f"Apuntes_{nombre.replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
     with bc2:
         if perfil.get("total_sesiones", 1) >= 3:
             if st.button("📋 Generar reporte", key="btn_reporte_main", use_container_width=True):
@@ -973,52 +814,28 @@ elif st.session_state.vista == "chat":
                         perfil["ultimo_reporte"] = reporte
                         manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
         else:
-            st.markdown(f"""
-            <div style="background:#fef9ef; border:1px solid #f59e0b; border-radius:10px;
-                        padding:8px; font-size:0.75rem; color:#92400e; text-align:center;">
-                📋 Reporte desde sesión 3<br>(llevas {perfil.get('total_sesiones',1)})
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div style="background:#fef9ef;border:1px solid #f59e0b;border-radius:10px;padding:8px;font-size:0.75rem;color:#92400e;text-align:center;">📋 Reporte desde sesión 3<br>(llevas {perfil.get('total_sesiones',1)})</div>""", unsafe_allow_html=True)
     with bc3:
         if st.session_state.get("reporte_generado"):
-            st.download_button(
-                "⬇️ Descargar reporte",
-                data=st.session_state.reporte_generado,
-                file_name=f"Reporte_{nombre.replace(' ','_')}.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
+            st.download_button("⬇️ Descargar reporte", data=st.session_state.reporte_generado, file_name=f"Reporte_{nombre.replace(' ','_')}.txt", mime="text/plain", use_container_width=True)
         else:
-            st.download_button(
-                "⬇️ Exportar perfil",
-                data=json.dumps({k: v for k, v in perfil.items() if k != "pin_hash"}, ensure_ascii=False, indent=2),
-                file_name=f"perfil_{alumno_id}.json",
-                mime="application/json",
-                use_container_width=True
-            )
+            st.download_button("⬇️ Exportar perfil", data=json.dumps({k: v for k, v in perfil.items() if k != "pin_hash"}, ensure_ascii=False, indent=2), file_name=f"perfil_{alumno_id}.json", mime="application/json", use_container_width=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── MOSTRAR REPORTE ──
     reporte_mostrar = st.session_state.get("reporte_generado") or perfil.get("ultimo_reporte")
     if reporte_mostrar:
-        st.markdown("""
-        <div style="background:linear-gradient(135deg,#faf5ff,#f0f9ff);
-                    border:2px solid #a855f7; border-radius:16px;
-                    padding:20px; margin-bottom:16px;">
-        """, unsafe_allow_html=True)
+        st.markdown("""<div style="background:linear-gradient(135deg,#faf5ff,#f0f9ff);border:2px solid #a855f7;border-radius:16px;padding:20px;margin-bottom:16px;">""", unsafe_allow_html=True)
         st.markdown(reporte_mostrar)
         st.markdown("</div>", unsafe_allow_html=True)
         if st.button("✖️ Cerrar reporte", key="cerrar_reporte"):
             st.session_state.reporte_generado = None
             st.rerun()
 
-    # ── HISTORIAL ──
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # ── BIENVENIDA AUTOMÁTICA ──
     keys_disponibles = get_api_keys()
 
     if not st.session_state.messages and keys_disponibles:
@@ -1042,16 +859,11 @@ Esta es tu sesión **#{sesion_num}** conmigo. Llevas **{puntos} puntos de sabidu
         st.session_state.es_primera_vez = False
         manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
         st.session_state.perfil_activo = perfil
-        st.rerun()  # Solo se ejecuta cuando se acaba de generar el mensaje de bienvenida
+        st.rerun()
 
-    # ── INPUT CON IMAGEN ──
     if keys_disponibles:
         with st.expander("📷 ¿Tienes una foto de tu tarea? Súbela aquí"):
-            foto_tarea = st.file_uploader(
-                "Sube una imagen (JPG o PNG, máx 5MB)",
-                type=["jpg", "jpeg", "png"],
-                key="uploader_foto"
-            )
+            foto_tarea = st.file_uploader("Sube una imagen (JPG o PNG, máx 5MB)", type=["jpg","jpeg","png"], key="uploader_foto")
             if foto_tarea:
                 if foto_tarea.size > 5 * 1024 * 1024:
                     st.error("❌ La imagen es demasiado grande (máx 5MB).")
@@ -1078,11 +890,8 @@ Esta es tu sesión **#{sesion_num}** conmigo. Llevas **{puntos} puntos de sabidu
             st.session_state.messages.append({"role": "user", "content": texto_historial})
             st.session_state.mensaje_counter += 1
 
-            # Análisis de sentimiento
             sentimiento = analizar_sentimiento(prompt)
             st.session_state.frustrado = (sentimiento == "frustrado")
-
-            # Actualizar perfil dinámico (debilidades + intereses en tiempo real)
             perfil = actualizar_perfil_dinamico(perfil, prompt)
             st.session_state.perfil_activo = perfil
 
@@ -1092,36 +901,30 @@ INFORMACION DEL ALUMNO:
 - Grado: {grado}
 - Sesion numero: {perfil.get('total_sesiones', 1)}
 - Primera sesion: {perfil.get('primera_sesion', 'hoy')}
-- Puntos de sabiduria acumulados: {perfil.get('puntos_sabiduria', 0)}
+- Puntos de sabiduria: {perfil.get('puntos_sabiduria', 0)}
 - Veces en modo nivelacion: {perfil.get('modos', {}).get('nivelacion', 0)}
 - Veces en modo profundizacion: {perfil.get('modos', {}).get('profundizacion', 0)}
 - Materias de interes: {', '.join(perfil.get('intereses', [])) or 'Ninguna aun'}
 - Materias de mejora: {', '.join(perfil.get('debilidades', [])) or 'Ninguna aun'}
 {"- Es alumno NUEVO, primera sesion." if perfil.get('total_sesiones', 1) == 1 else f"- Alumno RECURRENTE con {perfil.get('total_sesiones',1)} sesiones."}
 """
-            contexto_adicional = ""
-            if st.session_state.get("frustrado"):
-                contexto_adicional = "\n\nEL ALUMNO PARECE FRUSTRADO. Primero valida su emoción con empatía, luego usa preguntas socráticas simples para guiarlo."
-
+            contexto_adicional = "\n\nEL ALUMNO PARECE FRUSTRADO. Primero valida su emoción con empatía, luego usa preguntas socráticas simples." if st.session_state.get("frustrado") else ""
             instrucciones_completas = INSTRUCCIONES_MONI + "\n\n" + contexto_perfil + contexto_adicional
 
             with st.chat_message("assistant"):
                 spinner_msg = "Moni está viendo tu imagen... 🤔" if st.session_state.ultima_imagen else "Moni está pensando... 🤔"
                 with st.spinner(spinner_msg):
-                    texto, error = llamar_gemini(
-                        st.session_state.messages,
-                        instrucciones_completas,
-                        imagen_adjunta=st.session_state.ultima_imagen
-                    )
+                    texto, error = llamar_gemini(st.session_state.messages, instrucciones_completas, imagen_adjunta=st.session_state.ultima_imagen)
                     if error:
                         st.error(error)
                     else:
                         st.markdown(texto)
                         st.session_state.messages.append({"role": "assistant", "content": texto})
-                        # Guardar en cada respuesta para no perder datos si el usuario cierra el navegador
+                        if detectar_puntos_ganados(texto):
+                            st.balloons()
                         manejador.guardar_perfil(alumno_id, perfil, st.session_state.messages)
                         st.session_state.perfil_activo = perfil
-            # BUG FIX: limpiar imagen después de enviar para no reutilizarla
+
             st.session_state.ultima_imagen = None
             st.rerun()
     else:
@@ -1153,7 +956,6 @@ elif st.session_state.vista == "maestro_login":
                 password_correcta = st.secrets["TEACHER_PASSWORD"]
             except Exception:
                 password_correcta = "moni2025"
-
             if password == password_correcta:
                 st.session_state.vista = "dashboard"
                 st.rerun()
@@ -1180,6 +982,46 @@ elif st.session_state.vista == "dashboard":
         </div>
         """, unsafe_allow_html=True)
         st.markdown("---")
+
+        # ── BOTÓN DEMO ──────────────────────────────
+        st.markdown("**🧪 Modo demo**")
+        if st.button("👥 Crear alumnos de demo", use_container_width=True):
+            try:
+                with open("demo_data.json", "r", encoding="utf-8") as df:
+                    demos = json.load(df)
+                os.makedirs("perfiles", exist_ok=True)
+                creados = 0
+                for d in demos:
+                    n = d["nombre"].lower().replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u').replace('ñ','n').replace(' ','')
+                    g = d["grado"].lower().replace(' ','').replace('°','').replace('º','')
+                    alumno_id_demo = f"{n[:20]}_{g[:10]}"
+                    pin_hash_val   = hashlib.sha256(d["pin"].encode()).hexdigest()
+                    primera = (datetime.now() - timedelta(days=d["dias"])).strftime("%Y-%m-%d")
+                    ultima  = (datetime.now() - timedelta(days=d["dias"]//2)).strftime("%Y-%m-%d %H:%M")
+                    perfil_demo = {
+                        "nombre": d["nombre"], "grado": d["grado"],
+                        "pin_hash": pin_hash_val,
+                        "primera_sesion": primera, "ultima_sesion": ultima,
+                        "total_sesiones": d["sesiones"], "mensajes_totales": d["mensajes"],
+                        "modos": {"nivelacion": d["niv"], "profundizacion": d["prof"], "vocacional": d["voc"]},
+                        "puntos_sabiduria": d["puntos"],
+                        "fortalezas": [], "debilidades": d["deb"], "intereses": d["int"],
+                        "notas_maestro": "", "ultimo_reporte": "",
+                        "ultimo_indice_contado": len(d["historial"]),
+                        "historial": d["historial"]
+                    }
+                    ruta_demo = os.path.join("perfiles", f"{alumno_id_demo}.json")
+                    with open(ruta_demo, "w", encoding="utf-8") as pf:
+                        json.dump(perfil_demo, pf, ensure_ascii=False, indent=2)
+                    creados += 1
+                get_perfiles_cached.clear()
+                st.success(f"✅ {creados} alumnos de demo creados.")
+                st.info("PINs → Valeria:1234 | Carlos:5678 | Ana:9012 | Diego:3456 | Sofía:7890")
+                st.rerun()
+            except FileNotFoundError:
+                st.error("❌ No se encontró demo_data.json. Súbelo a tu repo de GitHub.")
+
+        st.markdown("---")
         st.markdown("**🔍 Filtros**")
 
         perfiles_todos     = get_perfiles_cached()
@@ -1190,17 +1032,8 @@ elif st.session_state.vista == "dashboard":
 
         st.markdown("---")
         if perfiles_todos:
-            todos_json = json.dumps(
-                [{k: v for k, v in p.items() if k != "pin_hash"} for p in perfiles_todos],
-                ensure_ascii=False, indent=2
-            )
-            st.download_button(
-                "⬇️ Exportar todos",
-                data=todos_json,
-                file_name=f"perfiles_{datetime.now().strftime('%Y%m%d')}.json",
-                mime="application/json",
-                use_container_width=True
-            )
+            todos_json = json.dumps([{k: v for k, v in p.items() if k != "pin_hash"} for p in perfiles_todos], ensure_ascii=False, indent=2)
+            st.download_button("⬇️ Exportar todos", data=todos_json, file_name=f"perfiles_{datetime.now().strftime('%Y%m%d')}.json", mime="application/json", use_container_width=True)
 
         if st.button("🚪 Cerrar sesión", use_container_width=True):
             st.session_state.vista = "inicio"
@@ -1221,11 +1054,10 @@ elif st.session_state.vista == "dashboard":
         <div class="card" style="text-align:center; padding:40px;">
             <p style="font-size:3rem;">📭</p>
             <p style="font-weight:700; color:#475569;">No hay alumnos que coincidan</p>
-            <p style="color:#94a3b8; font-size:0.9rem;">Los perfiles aparecen aquí cuando los alumnos inician sesión con Moni.</p>
+            <p style="color:#94a3b8; font-size:0.9rem;">Presiona "Crear alumnos de demo" en el sidebar para poblar el panel.</p>
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Métricas calculadas sobre la lista ya filtrada (no sobre perfiles_todos)
         total_alumnos  = len(perfiles)
         total_sesiones = sum(p.get("total_sesiones", 0) for p in perfiles)
         total_msgs     = sum(p.get("mensajes_totales", 0) for p in perfiles)
@@ -1243,23 +1075,16 @@ elif st.session_state.vista == "dashboard":
             (cols[5], total_pts,      "⭐ Puntos",  "#b45309"),
         ]:
             with col:
-                st.markdown(f"""
-                <div class="metric-box">
-                    <div class="metric-num" style="color:{color};">{num}</div>
-                    <div class="metric-label">{label}</div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div class="metric-box"><div class="metric-num" style="color:{color};">{num}</div><div class="metric-label">{label}</div></div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
         if len(perfiles) > 1:
             st.markdown("### 📈 Distribución de modos por alumno")
             df_modos = pd.DataFrame([{
-                "Alumno":         p.get("nombre", ""),
-                "Nivelación":     p.get("modos", {}).get("nivelacion", 0),
-                "Profundización": p.get("modos", {}).get("profundizacion", 0),
-                "Vocacional":     p.get("modos", {}).get("vocacional", 0),
-                "⭐ Puntos":      p.get("puntos_sabiduria", 0),
+                "Alumno": p.get("nombre",""), "Nivelación": p.get("modos",{}).get("nivelacion",0),
+                "Profundización": p.get("modos",{}).get("profundizacion",0),
+                "Vocacional": p.get("modos",{}).get("vocacional",0), "⭐ Puntos": p.get("puntos_sabiduria",0),
             } for p in perfiles])
             st.bar_chart(df_modos.set_index("Alumno"))
             st.markdown("---")
@@ -1269,16 +1094,8 @@ elif st.session_state.vista == "dashboard":
         with col_lista:
             st.markdown("### 👥 Alumnos")
             for i, p in enumerate(perfiles):
-                nombre_p   = p.get("nombre", "Sin nombre")
-                grado_p    = p.get("grado", "")
-                sesiones_p = p.get("total_sesiones", 0)
-                ultima_p   = p.get("ultima_sesion", "")[:10]
-                pts_p      = p.get("puntos_sabiduria", 0)
-                if st.button(
-                    f"**{nombre_p}** · {grado_p}\n📅 {ultima_p} · {sesiones_p} ses. · ⭐{pts_p}pts",
-                    key=f"alumno_{i}",
-                    use_container_width=True
-                ):
+                pts_p = p.get("puntos_sabiduria", 0)
+                if st.button(f"**{p.get('nombre','Sin nombre')}** · {p.get('grado','')}\n📅 {p.get('ultima_sesion','')[:10]} · {p.get('total_sesiones',0)} ses. · ⭐{pts_p}pts", key=f"alumno_{i}", use_container_width=True):
                     st.session_state.alumno_detalle = p
 
         with col_detalle:
@@ -1286,50 +1103,42 @@ elif st.session_state.vista == "dashboard":
             detalle = st.session_state.alumno_detalle
 
             if not detalle:
-                st.markdown("""
-                <div class="card" style="text-align:center; padding:30px;">
-                    <p style="font-size:2rem;">👈</p>
-                    <p style="color:#94a3b8;">Selecciona un alumno de la lista</p>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown("""<div class="card" style="text-align:center;padding:30px;"><p style="font-size:2rem;">👈</p><p style="color:#94a3b8;">Selecciona un alumno de la lista</p></div>""", unsafe_allow_html=True)
             else:
-                nombre_d    = detalle.get("nombre", "")
-                grado_d     = detalle.get("grado", "")
-                primera_d   = detalle.get("primera_sesion", "")
-                ultima_d    = detalle.get("ultima_sesion", "")
-                sesiones_d  = detalle.get("total_sesiones", 0)
-                msgs_d      = detalle.get("mensajes_totales", 0)
-                modos_d     = detalle.get("modos", {})
-                debilidades = detalle.get("debilidades", [])
-                intereses_d = detalle.get("intereses", [])
-                puntos_d    = detalle.get("puntos_sabiduria", 0)
+                nombre_d    = detalle.get("nombre","")
+                grado_d     = detalle.get("grado","")
+                primera_d   = detalle.get("primera_sesion","")
+                ultima_d    = detalle.get("ultima_sesion","")
+                sesiones_d  = detalle.get("total_sesiones",0)
+                msgs_d      = detalle.get("mensajes_totales",0)
+                modos_d     = detalle.get("modos",{})
+                debilidades = detalle.get("debilidades",[])
+                intereses_d = detalle.get("intereses",[])
+                puntos_d    = detalle.get("puntos_sabiduria",0)
 
                 st.markdown(f"""
                 <div class="card">
-                    <div style="font-size:1.4rem; font-weight:900; color:#1e293b;">{nombre_d}</div>
-                    <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">{grado_d}</div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;
-                                margin-top:16px; font-size:0.82rem; color:#374151;">
+                    <div style="font-size:1.4rem;font-weight:900;color:#1e293b;">{nombre_d}</div>
+                    <div style="font-size:0.85rem;color:#64748b;margin-top:4px;">{grado_d}</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;font-size:0.82rem;color:#374151;">
                         <div><b>Primera sesión:</b><br>{primera_d}</div>
                         <div><b>Última sesión:</b><br>{ultima_d[:16]}</div>
                         <div><b>Total sesiones:</b><br>{sesiones_d}</div>
                         <div><b>Mensajes enviados:</b><br>{msgs_d}</div>
                     </div>
-                    <div style="margin-top:12px;">
-                        <span class="badge badge-pts">⭐ Puntos de sabiduría: {puntos_d}</span>
-                    </div>
+                    <div style="margin-top:12px;"><span class="badge badge-pts">⭐ Puntos de sabiduría: {puntos_d}</span></div>
                     <div style="margin-top:16px;">
-                        <b style="font-size:0.85rem; color:#475569;">MODOS DE USO</b>
-                        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <b style="font-size:0.85rem;color:#475569;">MODOS DE USO</b>
+                        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
                             <span class="badge badge-niv">📚 Nivelación: {modos_d.get('nivelacion',0)}</span>
                             <span class="badge badge-prof">🚀 Profundización: {modos_d.get('profundizacion',0)}</span>
                             <span class="badge badge-voc">🌟 Vocacional: {modos_d.get('vocacional',0)}</span>
                         </div>
                     </div>
-                    <div style="margin-top:12px; font-size:0.82rem; color:#374151;">
+                    <div style="margin-top:12px;font-size:0.82rem;color:#374151;">
                         <b>💚 Intereses:</b> {', '.join(intereses_d) if intereses_d else 'Ninguno registrado'}
                     </div>
-                    <div style="margin-top:6px; font-size:0.82rem; color:#374151;">
+                    <div style="margin-top:6px;font-size:0.82rem;color:#374151;">
                         <b>📚 Áreas de mejora:</b> {', '.join(debilidades) if debilidades else 'Ninguna registrada'}
                     </div>
                 </div>
@@ -1339,28 +1148,12 @@ elif st.session_state.vista == "dashboard":
                 if historial:
                     st.markdown("**📝 Últimas interacciones:**")
                     for msg in historial[-6:]:
-                        rol   = msg.get("role", "")
-                        texto = msg.get("content", "")[:180]
-                        if len(msg.get("content", "")) > 180:
+                        rol   = msg.get("role","")
+                        texto = msg.get("content","")[:180]
+                        if len(msg.get("content","")) > 180:
                             texto += "..."
                         icono = "🧑" if rol == "user" else "🤖"
-                        st.markdown(f"""
-                        <div style="background:{'#f8fafc' if rol=='user' else '#f0f9ff'};
-                                    border-left:3px solid {'#94a3b8' if rol=='user' else '#0ea5e9'};
-                                    padding:8px 12px; border-radius:0 8px 8px 0;
-                                    margin-bottom:6px; font-size:0.8rem; color:#374151;">
-                            {icono} {texto}
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.markdown(f"""<div style="background:{'#f8fafc' if rol=='user' else '#f0f9ff'};border-left:3px solid {'#94a3b8' if rol=='user' else '#0ea5e9'};padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:6px;font-size:0.8rem;color:#374151;">{icono} {texto}</div>""", unsafe_allow_html=True)
 
-                alumno_json = json.dumps(
-                    {k: v for k, v in detalle.items() if k != "pin_hash"},
-                    ensure_ascii=False, indent=2
-                )
-                st.download_button(
-                    f"⬇️ Exportar perfil de {nombre_d}",
-                    data=alumno_json,
-                    file_name=f"perfil_{nombre_d.lower().replace(' ','_')}.json",
-                    mime="application/json",
-                    use_container_width=True
-                )
+                alumno_json = json.dumps({k: v for k, v in detalle.items() if k != "pin_hash"}, ensure_ascii=False, indent=2)
+                st.download_button(f"⬇️ Exportar perfil de {nombre_d}", data=alumno_json, file_name=f"perfil_{nombre_d.lower().replace(' ','_')}.json", mime="application/json", use_container_width=True)
